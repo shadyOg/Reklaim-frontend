@@ -1,0 +1,36 @@
+# Build outputs
+bin/
+obj/
+out/
+
+# Visual Studio / VS Code
+.vs/
+.vscode/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+
+# Rider
+.idea/
+
+# OS files
+Thumbs.db
+.DS_Store
+
+# Logs
+*.log
+
+# NuGet
+packages/
+*.nupkg
+*.snupkg
+.nuget/
+
+# ASP.NET / Blazor
+appsettings.Development.json
+secrets.json
+
+# Temporary files
+*.tmp
+*.temp
