@@ -1,0 +1,71 @@
+﻿@page "/"
+
+<PageTitle>Reklaim Dashboard</PageTitle>
+
+<section class="hero-panel">
+    <div>
+        <p class="section-label">Overview</p>
+        <h2>Lost and found at a glance</h2>
+    </div>
+    <button class="primary-btn" type="button">Report a lost item</button>
+</section>
+
+<div class="summary-grid">
+    <div class="summary-card accent-blue">
+        <span class="summary-label">Open listings</span>
+        <strong>184</strong>
+    </div>
+    <div class="summary-card accent-green">
+        <span class="summary-label">Recovered items</span>
+        <strong>42</strong>
+    </div>
+    <div class="summary-card accent-orange">
+        <span class="summary-label">Pending claims</span>
+        <strong>11</strong>
+    </div>
+</div>
+
+<div class="content-grid">
+    <div class="panel">
+        <div class="panel-header">
+            <h3>Recent activity</h3>
+            <span class="chip">Live</span>
+        </div>
+
+        <ul class="activity-list">
+            <li>
+                <span class="bullet blue"></span>
+                <div>
+                    <strong>Blue water bottle</strong>
+                    <small>Reported 2 hours ago</small>
+                </div>
+            </li>
+            <li>
+                <span class="bullet green"></span>
+                <div>
+                    <strong>Student ID card</strong>
+                    <small>Claim request pending review</small>
+                </div>
+            </li>
+            <li>
+                <span class="bullet orange"></span>
+                <div>
+                    <strong>Silver keychain</strong>
+                    <small>Found near engineering block</small>
+                </div>
+            </li>
+        </ul>
+    </div>
+
+    <div class="panel">
+        <div class="panel-header">
+            <h3>Quick actions</h3>
+        </div>
+
+        <div class="quick-actions">
+            <button class="secondary-btn" type="button">Browse lost items</button>
+            <button class="secondary-btn" type="button">Browse found items</button>
+            <button class="secondary-btn" type="button">Manage claims</button>
+        </div>
+    </div>
+</div>
