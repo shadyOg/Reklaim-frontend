@@ -1,0 +1,33 @@
+﻿@inherits LayoutComponentBase
+
+<div class="app-shell">
+    <aside class="sidebar">
+        <div class="brand-block">
+            <div class="brand-mark">R</div>
+            <div>
+                <p class="eyebrow">Campus Lost &amp; Found</p>
+                <h2>Reklaim</h2>
+            </div>
+        </div>
+
+        <NavMenu />
+    </aside>
+
+    <div class="content-area">
+        <header class="topbar">
+            <div class="topbar-text">
+                <span class="topbar-label">Frontend shell</span>
+                <h1>Reklaim dashboard</h1>
+            </div>
+
+            <div class="topbar-actions">
+                <button class="secondary-btn" type="button">Report Item</button>
+                <button class="primary-btn" type="button">Login</button>
+            </div>
+        </header>
+
+        <main class="page-content">
+            @Body
+        </main>
+    </div>
+</div>
