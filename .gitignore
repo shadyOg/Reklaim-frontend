@@ -34,3 +34,10 @@ secrets.json
 # Temporary files
 *.tmp
 *.temp
+
+
+.env
+.localsettings.json
+*.db
+*.db-shm
+*.db-wal
