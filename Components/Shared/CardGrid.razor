@@ -1,0 +1,12 @@
+@* Responsive grid for listing pages. Put ItemCard components inside. *@
+
+<div class="card-grid" style="--card-min: @MinCardWidth">
+    @ChildContent
+</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    // Smallest width a card may shrink to before the grid drops a column.
+    [Parameter] public string MinCardWidth { get; set; } = "260px";
+}

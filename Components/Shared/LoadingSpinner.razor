@@ -1,0 +1,22 @@
+@* Spinner for network actions. Use Inline="true" inside buttons or short rows. *@
+
+<div class="spinner-wrap @(Inline ? "inline" : "block")" role="status" aria-live="polite">
+    <span class="spinner spinner-@Size" aria-hidden="true"></span>
+    @if (!string.IsNullOrWhiteSpace(Label))
+    {
+        <span class="spinner-label">@Label</span>
+    }
+    else
+    {
+        <span class="visually-hidden">Loading</span>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Label { get; set; } = "Loading...";
+
+    // "sm", "md" or "lg"
+    [Parameter] public string Size { get; set; } = "md";
+
+    [Parameter] public bool Inline { get; set; }
+}
