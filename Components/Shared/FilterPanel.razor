@@ -1,5 +1,5 @@
 @* Filter controls for the feed: category, location, status and date range.
-   Structure only for now. The feed page owns the ItemFilter and does the filtering. *@
+   The parent owns the ItemFilter and does the filtering (see ItemFeed and Helpers/ItemQuery). *@
 
 <section class="filter-panel" aria-label="Filter items">
     <div class="filter-header">
@@ -15,8 +15,8 @@
 
     <div class="filter-fields">
         <div class="filter-field">
-            <label for="filter-category">Category</label>
-            <select id="filter-category" @bind="Filter.Category" @bind:after="NotifyChanged">
+            <label for="@($"{idPrefix}-category")">Category</label>
+            <select id="@($"{idPrefix}-category")" @bind="Filter.Category" @bind:after="NotifyChanged">
                 <option value="">All categories</option>
                 @foreach (var category in Categories)
                 {
@@ -26,8 +26,8 @@
         </div>
 
         <div class="filter-field">
-            <label for="filter-location">Location</label>
-            <select id="filter-location" @bind="Filter.Location" @bind:after="NotifyChanged">
+            <label for="@($"{idPrefix}-location")">Location</label>
+            <select id="@($"{idPrefix}-location")" @bind="Filter.Location" @bind:after="NotifyChanged">
                 <option value="">All locations</option>
                 @foreach (var location in Locations)
                 {
@@ -37,8 +37,8 @@
         </div>
 
         <div class="filter-field">
-            <label for="filter-status">Status</label>
-            <select id="filter-status" @bind="Filter.Status" @bind:after="NotifyChanged">
+            <label for="@($"{idPrefix}-status")">Status</label>
+            <select id="@($"{idPrefix}-status")" @bind="Filter.Status" @bind:after="NotifyChanged">
                 <option value="">Any status</option>
                 @foreach (var status in Statuses)
                 {
@@ -52,12 +52,14 @@
             <div class="date-row">
                 <label>
                     <span class="visually-hidden">From</span>
-                    <input type="date" aria-label="From date" @bind="Filter.DateFrom" @bind:after="NotifyChanged" />
+                    <input type="date" aria-label="From date" max="@DateAttr(Filter.DateTo ?? DateTime.Today)"
+                           @bind="Filter.DateFrom" @bind:after="NotifyChanged" />
                 </label>
                 <span class="date-sep" aria-hidden="true">–</span>
                 <label>
                     <span class="visually-hidden">To</span>
-                    <input type="date" aria-label="To date" @bind="Filter.DateTo" @bind:after="NotifyChanged" />
+                    <input type="date" aria-label="To date" min="@DateAttr(Filter.DateFrom)" max="@DateAttr(DateTime.Today)"
+                           @bind="Filter.DateTo" @bind:after="NotifyChanged" />
                 </label>
             </div>
         </fieldset>
@@ -75,7 +77,13 @@
 
     [Parameter] public IReadOnlyList<string> Statuses { get; set; } = ["Open", "Pending", "Claimed"];
 
+    // Unique per instance so labels still work when two panels are on one page.
+    private readonly string idPrefix = $"filter-{Guid.NewGuid():N}";
+
     private Task NotifyChanged() => FilterChanged.InvokeAsync(Filter);
+
+    // null renders no attribute.
+    private static string? DateAttr(DateTime? date) => date?.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
 
     private Task Reset()
     {

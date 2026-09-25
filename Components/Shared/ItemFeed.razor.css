@@ -1,0 +1,167 @@
+.feed-controls {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+}
+
+.sort-control {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0;
+}
+
+.sort-control span {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #607189;
+}
+
+.sort-control select {
+    padding: 0.6rem 0.7rem;
+    border: 1px solid #d6e1ef;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #17324d;
+}
+
+.sort-control select:focus {
+    outline: none;
+    border-color: #1d8ad0;
+    box-shadow: 0 0 0 3px rgba(29, 138, 208, 0.15);
+}
+
+/* Only shown once the filter panel collapses (tablet and phone). */
+.filter-toggle {
+    display: none;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.6rem 0.9rem;
+    border: 1px solid #d6e1ef;
+    border-radius: 10px;
+    background: #ffffff;
+    color: #1f446d;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.filter-toggle[aria-expanded="true"] {
+    background: #edf3ff;
+    border-color: #bfd2eb;
+}
+
+.filter-toggle:focus-visible {
+    outline: 2px solid #1d8ad0;
+    outline-offset: 2px;
+}
+
+.toggle-count {
+    min-width: 1.3rem;
+    padding: 0.05rem 0.4rem;
+    border-radius: 999px;
+    background: #1d8ad0;
+    color: #ffffff;
+    font-size: 0.72rem;
+    text-align: center;
+}
+
+.feed-filters {
+    position: sticky;
+    top: 1rem;
+}
+
+.feed-results {
+    min-width: 0;
+}
+
+.results-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.results-count {
+    margin: 0;
+    color: #607189;
+    font-size: 0.9rem;
+}
+
+.results-count strong {
+    color: #102b47;
+}
+
+.filter-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.3rem 0.65rem;
+    border: 1px solid #cfe0f5;
+    border-radius: 999px;
+    background: #edf3ff;
+    color: #1f446d;
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.filter-chip span {
+    color: #607189;
+    font-size: 0.7rem;
+}
+
+.filter-chip:hover {
+    border-color: #1d8ad0;
+}
+
+.filter-chip:focus-visible {
+    outline: 2px solid #1d8ad0;
+    outline-offset: 2px;
+}
+
+@media (max-width: 900px) {
+    .filter-toggle {
+        display: inline-flex;
+    }
+
+    .feed-filters {
+        display: none;
+        position: static;
+    }
+
+    .feed-filters.open {
+        display: block;
+    }
+}
+
+@media (max-width: 560px) {
+    .feed-controls {
+        width: 100%;
+    }
+
+    .sort-control {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .sort-control select {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .results-bar {
+        margin-bottom: 0.8rem;
+    }
+}
