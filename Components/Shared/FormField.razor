@@ -1,0 +1,56 @@
+﻿<div class="form-field">
+    @if (!string.IsNullOrEmpty(Label))
+    {
+        <label class="form-field__label" for="@Id">@Label</label>
+    }
+    <div class="form-field__input-wrapper">
+        <input id="@Id"
+               type="@EffectiveInputType"
+               class="form-field__input @(HasError ? "form-field__input--error" : string.Empty)"
+               placeholder="@Placeholder"
+               value="@Value"
+               autocomplete="@AutoComplete"
+               @oninput="OnInput" />
+        @if (InputType == "password")
+        {
+            <button type="button"
+                    class="form-field__toggle"
+                    tabindex="-1"
+                    @onclick="ToggleVisibility"
+                    aria-label="@(IsPasswordVisible ? "Hide password" : "Show password")">
+                @(IsPasswordVisible ? "Hide" : "Show")
+            </button>
+        }
+    </div>
+    @if (HasError)
+    {
+        <span class="form-field__error">@ErrorMessage</span>
+    }
+</div>
+
+@code {
+    [Parameter] public string Id { get; set; } = Guid.NewGuid().ToString("N");
+    [Parameter] public string? Label { get; set; }
+    [Parameter] public string InputType { get; set; } = "text";
+    [Parameter] public string? Placeholder { get; set; }
+    [Parameter] public string? AutoComplete { get; set; }
+    [Parameter] public string Value { get; set; } = string.Empty;
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter] public string? ErrorMessage { get; set; }
+
+    private bool IsPasswordVisible;
+    private bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+    private string EffectiveInputType =>
+        InputType == "password" && IsPasswordVisible ? "text" : InputType;
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        Value = e.Value?.ToString() ?? string.Empty;
+        await ValueChanged.InvokeAsync(Value);
+    }
+
+    private void ToggleVisibility()
+    {
+        IsPasswordVisible = !IsPasswordVisible;
+    }
+}

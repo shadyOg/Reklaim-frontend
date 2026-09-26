@@ -1,0 +1,78 @@
+﻿@using Reklaim_frontend.Helpers
+@using Reklaim_frontend.Models
+@using Reklaim_frontend.Services
+@using Reklaim_frontend.Components.Shared
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+
+<form class="auth-form" @onsubmit="HandleSubmit" @onsubmit:preventDefault="true">
+    <FormField Label="University Email"
+               InputType="email"
+               Placeholder="you@university.edu"
+               AutoComplete="email"
+               Value="@Email"
+               ValueChanged="@(v => Email = v)"
+               ErrorMessage="@EmailError" />
+
+    <FormField Label="Password"
+               InputType="password"
+               Placeholder="Your password"
+               AutoComplete="current-password"
+               Value="@Password"
+               ValueChanged="@(v => Password = v)"
+               ErrorMessage="@PasswordError" />
+
+    @if (!string.IsNullOrEmpty(FormError))
+    {
+        <div class="auth-form__error" role="alert">@FormError</div>
+    }
+
+    <button type="submit" class="auth-form__submit" disabled="@IsSubmitting">
+        @(IsSubmitting ? "Signing in..." : "Sign In")
+    </button>
+</form>
+
+@code {
+    private string Email = string.Empty;
+    private string Password = string.Empty;
+
+    private string? EmailError;
+    private string? PasswordError;
+    private string? FormError;
+    private bool IsSubmitting;
+
+    private async Task HandleSubmit()
+    {
+        EmailError = null;
+        PasswordError = null;
+        FormError = null;
+
+        var allowedDomain = Configuration["Auth:AllowedEmailDomain"] ?? "@university.edu";
+
+        if (!ValidationHelper.IsValidUniversityEmail(Email, allowedDomain))
+        {
+            EmailError = $"Please use a valid university email ending in {allowedDomain}.";
+        }
+
+        ValidationHelper.IsRequired(Password, "Password", out PasswordError);
+
+        if (EmailError != null || PasswordError != null)
+        {
+            return;
+        }
+
+        IsSubmitting = true;
+        var result = await AuthService.LoginAsync(new LoginRequestDto { Email = Email, Password = Password });
+        IsSubmitting = false;
+
+        if (result.Success)
+        {
+            NavigationManager.NavigateTo("/", forceLoad: true);
+        }
+        else
+        {
+            FormError = result.ErrorMessage ?? "Login failed. Please check your credentials and try again.";
+        }
+    }
+}

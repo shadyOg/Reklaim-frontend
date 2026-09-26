@@ -1,0 +1,113 @@
+﻿@using Reklaim_frontend.Helpers
+@using Reklaim_frontend.Models
+@using Reklaim_frontend.Services
+@using Reklaim_frontend.Components.Shared
+@inject AuthService AuthService
+@inject NavigationManager NavigationManager
+@inject IConfiguration Configuration
+
+<form class="auth-form" @onsubmit="HandleSubmit" @onsubmit:preventDefault="true">
+    <FormField Label="Full Name"
+               InputType="text"
+               Placeholder="Jane Doe"
+               AutoComplete="name"
+               Value="@Name"
+               ValueChanged="@(v => Name = v)"
+               ErrorMessage="@NameError" />
+
+    <FormField Label="University Email"
+               InputType="email"
+               Placeholder="you@university.edu"
+               AutoComplete="email"
+               Value="@Email"
+               ValueChanged="@(v => Email = v)"
+               ErrorMessage="@EmailError" />
+
+    <FormField Label="Password"
+               InputType="password"
+               Placeholder="At least 8 characters"
+               AutoComplete="new-password"
+               Value="@Password"
+               ValueChanged="@(v => Password = v)"
+               ErrorMessage="@PasswordError" />
+
+    <FormField Label="Confirm Password"
+               InputType="password"
+               Placeholder="Re-enter your password"
+               AutoComplete="new-password"
+               Value="@ConfirmPassword"
+               ValueChanged="@(v => ConfirmPassword = v)"
+               ErrorMessage="@ConfirmPasswordError" />
+
+    @if (!string.IsNullOrEmpty(FormError))
+    {
+        <div class="auth-form__error" role="alert">@FormError</div>
+    }
+
+    <button type="submit" class="auth-form__submit" disabled="@IsSubmitting">
+        @(IsSubmitting ? "Creating account..." : "Create Account")
+    </button>
+</form>
+
+@code {
+    private string Name = string.Empty;
+    private string Email = string.Empty;
+    private string Password = string.Empty;
+    private string ConfirmPassword = string.Empty;
+
+    private string? NameError;
+    private string? EmailError;
+    private string? PasswordError;
+    private string? ConfirmPasswordError;
+    private string? FormError;
+    private bool IsSubmitting;
+
+    private async Task HandleSubmit()
+    {
+        NameError = null;
+        EmailError = null;
+        PasswordError = null;
+        ConfirmPasswordError = null;
+        FormError = null;
+
+        var allowedDomain = Configuration["Auth:AllowedEmailDomain"] ?? "@university.edu";
+
+        ValidationHelper.IsRequired(Name, "Name", out NameError);
+
+        if (!ValidationHelper.IsValidUniversityEmail(Email, allowedDomain))
+        {
+            EmailError = $"Please use a valid university email ending in {allowedDomain}.";
+        }
+
+        ValidationHelper.IsValidPassword(Password, out PasswordError);
+
+        if (ConfirmPassword != Password)
+        {
+            ConfirmPasswordError = "Passwords do not match.";
+        }
+
+        if (NameError != null || EmailError != null || PasswordError != null || ConfirmPasswordError != null)
+        {
+            return;
+        }
+
+        IsSubmitting = true;
+        var result = await AuthService.RegisterAsync(new RegisterRequestDto
+        {
+            Name = Name,
+            Email = Email,
+            Password = Password,
+            ConfirmPassword = ConfirmPassword
+        });
+        IsSubmitting = false;
+
+        if (result.Success)
+        {
+            NavigationManager.NavigateTo("/", forceLoad: true);
+        }
+        else
+        {
+            FormError = result.ErrorMessage ?? "Could not create your account. Please try again.";
+        }
+    }
+}

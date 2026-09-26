@@ -1,4 +1,6 @@
 @page "/register"
+@rendermode InteractiveServer
+@using Reklaim_frontend.Components.Auth
 
 <PageTitle>Register</PageTitle>
 
@@ -6,11 +8,12 @@
     <div class="page-card">
         <p class="section-label">Authentication</p>
         <h2>Create your account</h2>
-        <p class="muted-text">This screen will support university email registration and account setup.</p>
+        <p class="muted-text">Use your university email to get started.</p>
 
-        <div class="placeholder-box">
-            <strong>Register page stub</strong>
-            <span>Form validation and signup flow will be added in the authentication phase.</span>
-        </div>
+        <RegisterForm />
+
+        <p class="muted-text">
+            Already have an account? <a href="/login">Sign in</a>
+        </p>
     </div>
 </section>
