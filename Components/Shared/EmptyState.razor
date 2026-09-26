@@ -1,0 +1,24 @@
+@* Shown when a list has nothing to display, or a search returns no results. *@
+
+<div class="empty-state @(Compact ? "compact" : "")">
+    <div class="empty-icon" aria-hidden="true">@Icon</div>
+    <h3>@Title</h3>
+    @if (!string.IsNullOrWhiteSpace(Message))
+    {
+        <p>@Message</p>
+    }
+    @if (ChildContent is not null)
+    {
+        <div class="empty-actions">@ChildContent</div>
+    }
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Nothing here yet";
+    [Parameter] public string? Message { get; set; }
+    [Parameter] public string Icon { get; set; } = "∅";
+    [Parameter] public bool Compact { get; set; }
+
+    // Optional action buttons, e.g. "Clear filters" or "Report an item".
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

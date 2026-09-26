@@ -1,0 +1,57 @@
+@* Keyword search input. Supports @bind-Value (updates as the user types) and OnSearch (Enter / button). *@
+
+<div class="search-bar" role="search">
+    <span class="search-icon" aria-hidden="true">⌕</span>
+    <input type="search"
+           class="search-input"
+           placeholder="@Placeholder"
+           aria-label="@AriaLabel"
+           value="@Value"
+           @oninput="HandleInput"
+           @onkeydown="HandleKeyDown" />
+
+    @if (!string.IsNullOrEmpty(Value))
+    {
+        <button type="button" class="search-clear" aria-label="Clear search" @onclick="Clear">✕</button>
+    }
+
+    @if (ShowButton)
+    {
+        <button type="button" class="search-submit" @onclick="Submit">Search</button>
+    }
+</div>
+
+@code {
+    [Parameter] public string? Value { get; set; }
+    [Parameter] public EventCallback<string?> ValueChanged { get; set; }
+
+    // Fired when the user presses Enter, clicks Search, or clears the box.
+    [Parameter] public EventCallback<string?> OnSearch { get; set; }
+
+    [Parameter] public string Placeholder { get; set; } = "Search items, e.g. \"blue water bottle\"";
+    [Parameter] public string AriaLabel { get; set; } = "Search items";
+    [Parameter] public bool ShowButton { get; set; } = true;
+
+    private async Task HandleInput(ChangeEventArgs e)
+    {
+        Value = e.Value?.ToString();
+        await ValueChanged.InvokeAsync(Value);
+    }
+
+    private async Task HandleKeyDown(KeyboardEventArgs e)
+    {
+        if (e.Key == "Enter")
+        {
+            await Submit();
+        }
+    }
+
+    private Task Submit() => OnSearch.InvokeAsync(Value?.Trim());
+
+    private async Task Clear()
+    {
+        Value = string.Empty;
+        await ValueChanged.InvokeAsync(Value);
+        await OnSearch.InvokeAsync(Value);
+    }
+}

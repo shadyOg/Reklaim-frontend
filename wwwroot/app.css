@@ -21,6 +21,46 @@ h1, h2, h3, h4, p {
     margin-top: 0;
 }
 
+/* Buttons are global so pages and shared components can use them, not just the layout. */
+.primary-btn,
+.secondary-btn {
+    border: none;
+    border-radius: 10px;
+    font-weight: 600;
+    padding: 0.7rem 1.1rem;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.primary-btn {
+    background: linear-gradient(135deg, #1d8ad0, #30c5a3);
+    color: white;
+    box-shadow: 0 8px 18px rgba(29, 138, 208, 0.18);
+}
+
+.secondary-btn {
+    background: #edf3ff;
+    color: #1f446d;
+}
+
+.primary-btn:hover,
+.secondary-btn:hover {
+    transform: translateY(-1px);
+}
+
+.primary-btn:focus-visible,
+.secondary-btn:focus-visible {
+    outline: 2px solid #1d8ad0;
+    outline-offset: 2px;
+}
+
+.primary-btn:disabled,
+.secondary-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+}
+
 .section-label {
     margin: 0 0 0.4rem;
     font-size: 0.72rem;
@@ -211,10 +251,31 @@ h1, h2, h3, h4, p {
     gap: 0.75rem;
 }
 
+/* Listing pages: filter panel on the left, cards on the right. */
+.feed-layout {
+    display: grid;
+    grid-template-columns: 260px minmax(0, 1fr);
+    gap: 1.25rem;
+    align-items: start;
+}
+
+.feed-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.1rem;
+}
+
+.feed-toolbar > :first-child {
+    flex: 1;
+    min-width: 0;
+}
+
 @media (max-width: 900px) {
     .summary-grid,
-    .content-grid {
-        grid-template-columns: 1fr;
+    .content-grid,
+    .feed-layout {
+        grid-template-columns: minmax(0, 1fr);
     }
 
     .hero-panel {
@@ -377,5 +438,25 @@ h1, h2, h3, h4, p {
 
     .page-content {
         padding: 1.2rem 1.1rem 2rem;
+@media (max-width: 560px) {
+    .hero-panel,
+    .page-card {
+        padding: 1.2rem 1rem;
+        border-radius: 14px;
+    }
+
+    .hero-panel .primary-btn,
+    .hero-panel .secondary-btn {
+        width: 100%;
+    }
+
+    .feed-toolbar {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .page-section {
+        min-height: auto;
+        align-items: flex-start;
     }
 }

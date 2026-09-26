@@ -1,0 +1,85 @@
+@page "/ui-kit"
+@rendermode InteractiveServer
+
+@* Preview of the shared components so they can be reviewed before use on real pages. Sample data only. *@
+
+<PageTitle>UI Kit</PageTitle>
+
+<section class="hero-panel">
+    <div>
+        <p class="section-label">Shared components</p>
+        <h2>UI kit preview</h2>
+    </div>
+</section>
+
+<div class="kit-section">
+    <h3>SearchBar</h3>
+    <SearchBar @bind-Value="query" OnSearch="q => lastSearch = q" />
+    <p class="muted-text kit-note">Typing: "@query" · Last search: "@lastSearch"</p>
+</div>
+
+<div class="kit-section">
+    <h3>StatusBadge</h3>
+    <div class="kit-row">
+        @foreach (var status in new[] { "Open", "Found", "Pending", "Claimed", "Denied", "Archived" })
+        {
+            <StatusBadge Status="@status" />
+        }
+    </div>
+</div>
+
+<div class="kit-section">
+    <h3>LoadingSpinner</h3>
+    <div class="kit-row">
+        <LoadingSpinner Size="sm" Inline="true" Label="Saving..." />
+        <LoadingSpinner Size="md" Inline="true" Label="" />
+        <LoadingSpinner Size="lg" Inline="true" Label="" />
+    </div>
+    <LoadingSpinner Label="Loading items..." />
+</div>
+
+<div class="kit-section">
+    <h3>EmptyState</h3>
+    <EmptyState Icon="⌕" Title="No items match your search" Message="Try a different keyword or clear your filters.">
+        <button class="secondary-btn" type="button">Clear filters</button>
+        <button class="primary-btn" type="button">Report an item</button>
+    </EmptyState>
+</div>
+
+<div class="kit-section">
+    <h3>FilterPanel + CardGrid + ItemCard</h3>
+    <div class="feed-layout">
+        <FilterPanel @bind-Filter="filter" Locations="locations" />
+
+        <CardGrid>
+            @foreach (var item in sampleItems)
+            {
+                <ItemCard Title="@item.Title"
+                          Description="@item.Description"
+                          Category="@item.Category"
+                          Location="@item.Location"
+                          PostType="@item.PostType"
+                          Status="@item.Status"
+                          DatePosted="@item.DatePosted"
+                          Href="post-details" />
+            }
+        </CardGrid>
+    </div>
+    <p class="muted-text kit-note">Active filters: @filter.ActiveCount</p>
+</div>
+
+@code {
+    private string? query;
+    private string? lastSearch;
+    private ItemFilter filter = new();
+
+    private readonly string[] locations = ["Library", "Engineering Block", "Cafeteria", "Sports Complex", "Hostel A"];
+
+    private readonly (string Title, string Description, string Category, string Location, string PostType, string Status, DateTime DatePosted)[] sampleItems =
+    [
+        ("Blue water bottle", "Hydro Flask with a NASA sticker on the side.", "Bottles", "Library", "Found", "Open", DateTime.Today.AddDays(-1)),
+        ("Student ID card", "ID card for a Level 200 CS student.", "ID & Cards", "Cafeteria", "Found", "Pending", DateTime.Today.AddDays(-2)),
+        ("Black laptop bag", "Dell backpack with a charger and two notebooks inside. Lost after the evening lecture.", "Bags", "Engineering Block", "Lost", "Open", DateTime.Today.AddDays(-3)),
+        ("Silver keychain", "Three keys on a silver ring with a small football charm.", "Keys", "Sports Complex", "Found", "Claimed", DateTime.Today.AddDays(-6)),
+    ];
+}
