@@ -1,0 +1,288 @@
+@* Searchable, filterable, sortable list of listings. Drop it on a feed page and pass the items:
+       <ItemFeed Items="items" PostType="@postType" />
+   Items = null shows the loading state. The host page must use an interactive render mode.
+   With SyncWithUrl the search, filters and sort are kept in the query string. *@
+
+@using Reklaim_frontend.Helpers
+@using Microsoft.AspNetCore.Components.Routing
+@inject NavigationManager Nav
+@implements IDisposable
+
+<div class="item-feed">
+    <div class="feed-toolbar">
+        <SearchBar Value="@filter.Search" ValueChanged="OnSearchChanged" OnSearch="OnSearchChanged" ShowButton="false" />
+
+        <div class="feed-controls">
+            <label class="sort-control">
+                <span>Sort</span>
+                <select @bind="filter.Sort" @bind:after="OnStateChanged">
+                    <option value="@ItemSort.Newest">Newest first</option>
+                    <option value="@ItemSort.Oldest">Oldest first</option>
+                    <option value="@ItemSort.TitleAz">Title A–Z</option>
+                </select>
+            </label>
+
+            <button type="button"
+                    class="filter-toggle"
+                    aria-expanded="@(filtersOpen ? "true" : "false")"
+                    aria-controls="@filtersId"
+                    @onclick="() => filtersOpen = !filtersOpen">
+                Filters
+                @if (filter.ActiveCount > 0)
+                {
+                    <span class="toggle-count">@filter.ActiveCount</span>
+                }
+            </button>
+        </div>
+    </div>
+
+    <div class="feed-layout">
+        <div id="@filtersId" class="feed-filters @(filtersOpen ? "open" : "")">
+            <FilterPanel Filter="filter"
+                         FilterChanged="OnStateChanged"
+                         Categories="WithSelected(categories, filter.Category)"
+                         Locations="WithSelected(locations, filter.Location)" />
+        </div>
+
+        <div class="feed-results">
+            @if (Items is null)
+            {
+                <LoadingSpinner Label="Loading items..." />
+            }
+            else if (Items.Count == 0)
+            {
+                <EmptyState Icon="∅" Title="@EmptyTitle" Message="@EmptyMessage">
+                    @EmptyContent
+                </EmptyState>
+            }
+            else
+            {
+                <div class="results-bar">
+                    <p class="results-count" role="status" aria-live="polite">
+                        @if (results.Count == scopedTotal)
+                        {
+                            <span>@Plural(results.Count)</span>
+                        }
+                        else
+                        {
+                            <span>Showing <strong>@results.Count</strong> of @Plural(scopedTotal)</span>
+                        }
+                    </p>
+
+                    @if (!filter.IsEmpty)
+                    {
+                        <ul class="filter-chips" aria-label="Active filters">
+                            @foreach (var chip in ActiveChips())
+                            {
+                                <li>
+                                    <button type="button" class="filter-chip" aria-label="Remove filter @chip.Label" @onclick="() => RemoveChip(chip.Clear)">
+                                        @chip.Label <span aria-hidden="true">✕</span>
+                                    </button>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </div>
+
+                @if (results.Count == 0)
+                {
+                    <EmptyState Icon="⌕" Title="@NoMatchTitle" Message="Try a different keyword, or loosen your filters.">
+                        @if (filter.HasSearch)
+                        {
+                            <button type="button" class="secondary-btn" @onclick="ClearSearch">Clear search</button>
+                        }
+                        @if (!filter.IsEmpty)
+                        {
+                            <button type="button" class="secondary-btn" @onclick="ClearFilters">Clear filters</button>
+                        }
+                    </EmptyState>
+                }
+                else
+                {
+                    <CardGrid>
+                        @foreach (var item in results)
+                        {
+                            <ItemCard @key="item.Id"
+                                      Title="@item.Title"
+                                      Description="@item.Description"
+                                      Category="@item.Category"
+                                      Location="@item.LocationFound"
+                                      ImageUrl="@item.ImageUrl"
+                                      PostType="@item.PostType"
+                                      Status="@item.Status"
+                                      DatePosted="@item.DatePosted"
+                                      Href="@ItemHref(item)" />
+                        }
+                    </CardGrid>
+                }
+            }
+        </div>
+    </div>
+</div>
+
+@code {
+    // null = still loading.
+    [Parameter] public IReadOnlyList<ItemPostDto>? Items { get; set; }
+
+    // "Lost" or "Found" to scope the feed (the page's lost/found toggle), null for both.
+    [Parameter] public string? PostType { get; set; }
+
+    // Keep search, filters and sort in the query string.
+    [Parameter] public bool SyncWithUrl { get; set; }
+
+    // Link for each card. Defaults to the post details route.
+    [Parameter] public Func<ItemPostDto, string> ItemHref { get; set; } = item => $"post-details/{item.Id}";
+
+    // Shown when there are no items at all (not just no matches).
+    [Parameter] public string EmptyTitle { get; set; } = "No items posted yet";
+    [Parameter] public string? EmptyMessage { get; set; } = "When someone reports a lost or found item it will show up here.";
+    [Parameter] public RenderFragment? EmptyContent { get; set; }
+
+    private readonly string filtersId = $"feed-filters-{Guid.NewGuid():N}";
+
+    private ItemFilter filter = new();
+    private List<ItemPostDto> results = [];
+    private List<string> categories = [];
+    private List<string> locations = [];
+    private int scopedTotal;
+    private bool filtersOpen;
+
+    private CancellationTokenSource? urlDebounce;
+    private string? lastWrittenUri;
+
+    private string NoMatchTitle => filter.HasSearch
+        ? $"No items match \"{filter.Search!.Trim()}\""
+        : "No items match these filters";
+
+    protected override void OnInitialized()
+    {
+        if (SyncWithUrl)
+        {
+            filter = ItemFilterUrl.Read(Nav.Uri);
+            Nav.LocationChanged += OnLocationChanged;
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        var items = Items ?? [];
+        var scoped = ItemQuery.Apply(items, new ItemFilter(), PostType);
+        scopedTotal = scoped.Count;
+        categories = ItemQuery.DistinctValues(scoped, i => i.Category);
+        locations = ItemQuery.DistinctValues(scoped, i => i.LocationFound);
+        results = ItemQuery.Apply(items, filter, PostType);
+    }
+
+    private void Refresh() => results = ItemQuery.Apply(Items ?? [], filter, PostType);
+
+    private Task OnSearchChanged(string? value)
+    {
+        filter.Search = value;
+        return ApplyChanges(debounceUrl: true);
+    }
+
+    private Task OnStateChanged() => ApplyChanges(debounceUrl: false);
+
+    private async Task ApplyChanges(bool debounceUrl)
+    {
+        Refresh();
+
+        if (!SyncWithUrl)
+        {
+            return;
+        }
+
+        // Results update on every keystroke, but the URL only once typing pauses.
+        urlDebounce?.Cancel();
+        if (debounceUrl)
+        {
+            urlDebounce = new CancellationTokenSource();
+            try
+            {
+                await Task.Delay(400, urlDebounce.Token);
+            }
+            catch (TaskCanceledException)
+            {
+                return;
+            }
+        }
+
+        WriteUrl();
+    }
+
+    private void WriteUrl()
+    {
+        var uri = Nav.GetUriWithQueryParameters(ItemFilterUrl.ToParameters(filter));
+        if (uri == Nav.Uri)
+        {
+            return;
+        }
+
+        lastWrittenUri = uri;
+        Nav.NavigateTo(uri, replace: true);
+    }
+
+    // Back/forward or a link to the same page with different filters.
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        if (e.Location == lastWrittenUri)
+        {
+            return;
+        }
+
+        filter = ItemFilterUrl.Read(e.Location);
+        Refresh();
+        InvokeAsync(StateHasChanged);
+    }
+
+    private Task ClearSearch()
+    {
+        filter.Search = null;
+        return OnStateChanged();
+    }
+
+    private Task ClearFilters()
+    {
+        filter.Reset();
+        return OnStateChanged();
+    }
+
+    private Task RemoveChip(Action<ItemFilter> clear)
+    {
+        clear(filter);
+        return OnStateChanged();
+    }
+
+    private IEnumerable<(string Label, Action<ItemFilter> Clear)> ActiveChips()
+    {
+        if (!string.IsNullOrEmpty(filter.Category)) yield return (filter.Category, f => f.Category = null);
+        if (!string.IsNullOrEmpty(filter.Location)) yield return (filter.Location, f => f.Location = null);
+        if (!string.IsNullOrEmpty(filter.Status)) yield return (filter.Status, f => f.Status = null);
+
+        var dates = (filter.DateFrom, filter.DateTo) switch
+        {
+            ({ } from, { } to) => $"{from:d MMM} – {to:d MMM}",
+            ({ } from, null) => $"From {from:d MMM}",
+            (null, { } to) => $"Until {to:d MMM}",
+            _ => null
+        };
+        if (dates is not null) yield return (dates, f => { f.DateFrom = null; f.DateTo = null; });
+    }
+
+    // Keep a value from the URL selectable even if no current item uses it.
+    private static List<string> WithSelected(List<string> options, string? selected) =>
+        string.IsNullOrEmpty(selected) || options.Contains(selected, StringComparer.OrdinalIgnoreCase)
+            ? options
+            : [selected, .. options];
+
+    private static string Plural(int count) => count == 1 ? "1 item" : $"{count} items";
+
+    public void Dispose()
+    {
+        urlDebounce?.Cancel();
+        if (SyncWithUrl)
+        {
+            Nav.LocationChanged -= OnLocationChanged;
+        }
+    }
+}
