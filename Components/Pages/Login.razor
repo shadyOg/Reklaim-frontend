@@ -1,4 +1,6 @@
 @page "/login"
+@rendermode InteractiveServer
+@using Reklaim_frontend.Components.Auth
 
 <PageTitle>Login</PageTitle>
 
@@ -6,11 +8,12 @@
     <div class="page-card">
         <p class="section-label">Authentication</p>
         <h2>Welcome back</h2>
-        <p class="muted-text">This screen will handle university sign-in and email validation.</p>
+        <p class="muted-text">Sign in with your university email to continue.</p>
 
-        <div class="placeholder-box">
-            <strong>Login page stub</strong>
-            <span>Form fields, validation, and redirect logic will be added in a later phase.</span>
-        </div>
+        <LoginForm />
+
+        <p class="muted-text">
+            Don't have an account? <a href="/register">Create one</a>
+        </p>
     </div>
 </section>

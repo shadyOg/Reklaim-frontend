@@ -12,6 +12,13 @@ public class Program
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
 
+        builder.Services.AddScoped<Reklaim_frontend.Services.AuthService>();
+
+        builder.Services.AddHttpClient<Reklaim_frontend.Services.AuthService>(client =>
+        {
+            client.BaseAddress = new Uri(builder.Configuration["Api:BaseUrl"] ?? "https://localhost:7000/");
+        });
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
