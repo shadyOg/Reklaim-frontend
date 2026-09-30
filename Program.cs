@@ -19,6 +19,16 @@ public class Program
             client.BaseAddress = new Uri(builder.Configuration["Api:BaseUrl"] ?? "https://localhost:7000/");
         });
 
+        // PostService: typed HttpClient configured to talk to the Hub API
+        builder.Services.AddScoped<Reklaim_frontend.Services.PostService>();
+        builder.Services.AddHttpClient<Reklaim_frontend.Services.PostService>(client =>
+        {
+            client.BaseAddress = new Uri(builder.Configuration["Api:BaseUrl"] ?? "https://localhost:7026/");
+        });
+
+        // Mock mode for UI development: use in-memory post store. Swap to real PostService when backend is ready.
+        builder.Services.AddScoped<Reklaim_frontend.Services.IPostService, Reklaim_frontend.Services.MockPostService>();
+
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
