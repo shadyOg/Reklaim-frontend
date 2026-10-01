@@ -131,7 +131,7 @@
     [Parameter] public bool SyncWithUrl { get; set; }
 
     // Link for each card. Defaults to the post details route.
-    [Parameter] public Func<ItemPostDto, string> ItemHref { get; set; } = item => $"post-details/{item.Id}";
+    [Parameter] public Func<ItemPostDto, string> ItemHref { get; set; } = item => $"/post-details/{item.Id}";
 
     // Shown when there are no items at all (not just no matches).
     [Parameter] public string EmptyTitle { get; set; } = "No items posted yet";

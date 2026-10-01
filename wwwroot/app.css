@@ -88,6 +88,73 @@ h1, h2, h3, h4, p {
     margin-bottom: 1.5rem;
 }
 
+.hub-hero {
+    align-items: flex-start;
+}
+
+.hub-hero .muted-text {
+    margin: 0;
+}
+
+.hub-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.hub-toolbar h2 {
+    margin: 0;
+    color: #102b47;
+}
+
+.listing-toggle {
+    display: inline-flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    border: 1px solid #d8e2ef;
+    border-radius: 12px;
+    background: #edf3f9;
+}
+
+.listing-toggle button {
+    border: 0;
+    border-radius: 9px;
+    padding: 0.6rem 0.85rem;
+    background: transparent;
+    color: #4d6280;
+    cursor: pointer;
+    font-weight: 600;
+}
+
+.listing-toggle button.active {
+    background: #ffffff;
+    color: #1f446d;
+    box-shadow: 0 2px 8px rgba(17, 39, 67, 0.1);
+}
+
+.listing-toggle button:focus-visible {
+    outline: 2px solid #1d8ad0;
+    outline-offset: 2px;
+}
+
+.alert {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-radius: 12px;
+}
+
+.alert-danger {
+    border: 1px solid #f3b8b8;
+    background: #fff4f4;
+    color: #8b1e1e;
+}
+
 .hero-panel h2 {
     margin: 0;
     font-size: clamp(1.5rem, 2vw, 2.1rem);
@@ -128,6 +195,27 @@ h1, h2, h3, h4, p {
     display: grid;
     grid-template-columns: 1.5fr 1fr;
     gap: 1rem;
+}
+
+@media (max-width: 700px) {
+    .hub-toolbar {
+        align-items: stretch;
+        flex-direction: column;
+    }
+
+    .listing-toggle {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .listing-toggle button {
+        padding-inline: 0.45rem;
+    }
+
+    .alert {
+        align-items: stretch;
+        flex-direction: column;
+    }
 }
 
 .panel {
