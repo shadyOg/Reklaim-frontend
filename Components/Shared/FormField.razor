@@ -1,4 +1,4 @@
-﻿<div class="form-field">
+<div class="form-field">
     @if (!string.IsNullOrEmpty(Label))
     {
         <label class="form-field__label" for="@Id">@Label</label>
@@ -10,13 +10,16 @@
                placeholder="@Placeholder"
                value="@Value"
                autocomplete="@AutoComplete"
+               aria-invalid="@(HasError ? "true" : "false")"
+               aria-describedby="@(HasError ? ErrorId : null)"
                @oninput="OnInput" />
         @if (InputType == "password")
         {
             <button type="button"
                     class="form-field__toggle"
-                    tabindex="-1"
                     @onclick="ToggleVisibility"
+                    aria-controls="@Id"
+                    aria-pressed="@(IsPasswordVisible ? "true" : "false")"
                     aria-label="@(IsPasswordVisible ? "Hide password" : "Show password")">
                 @(IsPasswordVisible ? "Hide" : "Show")
             </button>
@@ -24,7 +27,7 @@
     </div>
     @if (HasError)
     {
-        <span class="form-field__error">@ErrorMessage</span>
+        <span id="@ErrorId" class="form-field__error">@ErrorMessage</span>
     }
 </div>
 
@@ -40,6 +43,7 @@
 
     private bool IsPasswordVisible;
     private bool HasError => !string.IsNullOrEmpty(ErrorMessage);
+    private string ErrorId => $"{Id}-error";
     private string EffectiveInputType =>
         InputType == "password" && IsPasswordVisible ? "text" : InputType;
 

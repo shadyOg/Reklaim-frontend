@@ -6,28 +6,51 @@
 
 <PageTitle>Posts</PageTitle>
 
-<section class="page-section">
-    <div class="page-card">
+<section class="hero-panel hub-hero">
+    <div>
         <p class="section-label">Browse</p>
         <h2>All listings</h2>
         <p class="muted-text">Browse reported lost and found items.</p>
-
-        @if (items is null)
-        {
-            <LoadingSpinner Label="Loading items..." />
-        }
-        else
-        {
-            <ItemFeed Items="items" SyncWithUrl="true" />
-        }
     </div>
+
+    <a class="primary-btn" href="post-create">Report an item</a>
 </section>
+
+@if (!string.IsNullOrWhiteSpace(loadError))
+{
+    <div class="alert alert-danger" role="alert">
+        @loadError
+        <button class="secondary-btn" type="button" @onclick="LoadItemsAsync">Try again</button>
+    </div>
+}
+else
+{
+    @* ItemFeed shows its own loading state while items is null. *@
+    <ItemFeed Items="items" SyncWithUrl="true">
+        <EmptyContent>
+            <a class="primary-btn" href="post-create">Report an item</a>
+        </EmptyContent>
+    </ItemFeed>
+}
 
 @code {
     private IReadOnlyList<ItemPostDto>? items;
+    private string? loadError;
 
-    protected override async Task OnInitializedAsync()
+    protected override Task OnInitializedAsync() => LoadItemsAsync();
+
+    private async Task LoadItemsAsync()
     {
-        items = await PostService.GetAllAsync();
+        loadError = null;
+        items = null;
+
+        try
+        {
+            items = await PostService.GetAllAsync();
+        }
+        catch (Exception)
+        {
+            loadError = "We could not load listings right now. Please try again.";
+        }
     }
 }

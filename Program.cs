@@ -27,7 +27,8 @@ public class Program
         });
 
         // Mock mode for UI development: use in-memory post store. Swap to real PostService when backend is ready.
-        builder.Services.AddScoped<Reklaim_frontend.Services.IPostService, Reklaim_frontend.Services.MockPostService>();
+        // Singleton so posts created during a demo survive page refreshes and show up for every tab.
+        builder.Services.AddSingleton<Reklaim_frontend.Services.IPostService, Reklaim_frontend.Services.MockPostService>();
 
         var app = builder.Build();
 
@@ -36,6 +37,9 @@ public class Program
         {
             app.UseExceptionHandler("/Error");
         }
+
+        // Unknown URLs render the styled 404 page instead of the browser's blank one.
+        app.UseStatusCodePagesWithReExecute("/not-found");
 
         app.UseStaticFiles();
         app.UseAntiforgery();

@@ -123,7 +123,7 @@
         width: 100%;
     }
 
-    .topbar-actions .primary-btn,
+    .topbar-actions ::deep .primary-btn,
     .topbar-actions .secondary-btn {
         flex: 1;
     }

@@ -1,9 +1,10 @@
 @page "/post-create"
+@rendermode InteractiveServer
+@using System.ComponentModel.DataAnnotations
 @using Reklaim_frontend.Services
-@using Microsoft.AspNetCore.Components.Forms
+@using Reklaim_frontend.Helpers
 @inject IPostService PostService
 @inject NavigationManager Navigation
-@using Reklaim_frontend.Helpers
 
 <PageTitle>Create Post</PageTitle>
 
@@ -11,85 +12,108 @@
     <div class="page-card">
         <p class="section-label">Posting</p>
         <h2>Report a lost or found item</h2>
+        <p class="muted-text">Fields marked <span class="required-mark" aria-hidden="true">*</span><span class="visually-hidden">with an asterisk</span> are required.</p>
 
-        <EditForm Model="model" OnValidSubmit="HandleValidSubmit" FormName="createPostForm">
+        <EditForm Model="model" OnValidSubmit="HandleValidSubmit" FormName="createPostForm" class="form-stack">
             <DataAnnotationsValidator />
 
-            <div class="mb-3">
-                <label class="form-label">Title <span class="text-danger">*</span></label>
-                <InputText class="form-control" @bind-Value="model.Title" aria-required="true" />
-                <ValidationMessage For="() => model.Title" class="text-danger small" />
-            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="post-type">Post type <span class="required-mark" aria-hidden="true">*</span></label>
+                    <InputSelect id="post-type" class="form-select" @bind-Value="model.PostType" aria-required="true">
+                        <option value="">Select...</option>
+                        <option value="Lost">I lost something</option>
+                        <option value="Found">I found something</option>
+                    </InputSelect>
+                    <ValidationMessage For="() => model.PostType" />
+                </div>
 
-            <div class="mb-3">
-                <label class="form-label">Description <span class="text-danger">*</span></label>
-                <InputTextArea class="form-control" @bind-Value="model.Description" aria-required="true" />
-                <ValidationMessage For="() => model.Description" class="text-danger small" />
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Location Found <span class="text-danger">*</span></label>
-                <InputText class="form-control" @bind-Value="model.LocationFound" aria-required="true" />
-                <ValidationMessage For="() => model.LocationFound" class="text-danger small" />
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Category <span class="text-danger">*</span></label>
-                <InputSelect class="form-select" @bind-Value="selectedCategory" @onchange="OnCategoryChanged" aria-required="true">
-                    <option value="">Select...</option>
-                    @if (categories != null)
-                    {
-                        @foreach (var c in categories)
+                <div class="form-group">
+                    <label for="post-category">Category <span class="required-mark" aria-hidden="true">*</span></label>
+                    <InputSelect id="post-category" class="form-select" @bind-Value="selectedCategory" @bind-Value:after="OnCategoryChanged" aria-required="true">
+                        <option value="">@(categories is null ? "Loading..." : "Select...")</option>
+                        @if (categories != null)
                         {
-                            <option value="@c">@c</option>
+                            @foreach (var c in categories)
+                            {
+                                <option value="@c">@c</option>
+                            }
                         }
+                        <option value="@OtherCategory">Other...</option>
+                    </InputSelect>
+                    @if (isOther)
+                    {
+                        <label for="post-category-other" class="visually-hidden">Custom category</label>
+                        <InputText id="post-category-other" class="form-control" @bind-Value="model.Category" placeholder="Enter category" />
                     }
-                    <option value="__other">Other...</option>
-                </InputSelect>
-                @if (isOther)
+                    <ValidationMessage For="() => model.Category" />
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="post-title">Title <span class="required-mark" aria-hidden="true">*</span></label>
+                <InputText id="post-title" class="form-control" @bind-Value="model.Title" placeholder="e.g. Blue water bottle" aria-required="true" />
+                <ValidationMessage For="() => model.Title" />
+            </div>
+
+            <div class="form-group">
+                <label for="post-description">Description <span class="required-mark" aria-hidden="true">*</span></label>
+                <InputTextArea id="post-description" class="form-control" @bind-Value="model.Description" aria-required="true" aria-describedby="post-description-hint" />
+                <span id="post-description-hint" class="form-hint">Describe colour, brand or marks, but leave out one detail only the owner would know.</span>
+                <ValidationMessage For="() => model.Description" />
+            </div>
+
+            <div class="form-group">
+                <label for="post-location">Location <span class="required-mark" aria-hidden="true">*</span></label>
+                <InputText id="post-location" class="form-control" @bind-Value="model.LocationFound" placeholder="e.g. Library, 2nd floor" aria-required="true" aria-describedby="post-location-hint" />
+                <span id="post-location-hint" class="form-hint">Where the item was lost or found.</span>
+                <ValidationMessage For="() => model.LocationFound" />
+            </div>
+
+            <div class="form-group">
+                <label for="post-image">Photo (optional)</label>
+                <InputFile id="post-image" class="form-control" accept=".png,.jpg,.jpeg,.gif" OnChange="OnInputFileChange" aria-describedby="post-image-hint" />
+                <span id="post-image-hint" class="form-hint">PNG, JPG or GIF, up to 5 MB.</span>
+                @if (!string.IsNullOrEmpty(fileError))
                 {
-                    <div class="mt-2">
-                        <InputText class="form-control" @bind-Value="model.Category" placeholder="Enter category" />
-                    </div>
+                    <span class="validation-message" role="alert">@fileError</span>
                 }
-                <ValidationMessage For="() => model.Category" class="text-danger small" />
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Post Type <span class="text-danger">*</span></label>
-                <InputSelect class="form-select" @bind-Value="model.PostType" aria-required="true">
-                    <option value="">Select...</option>
-                    <option value="Found">Found</option>
-                    <option value="Lost">Lost</option>
-                </InputSelect>
-                <ValidationMessage For="() => model.PostType" class="text-danger small" />
-            </div>
-
-            <div class="mb-3">
-                <label class="form-label">Image (optional)</label>
-                <InputFile OnChange="OnInputFileChange" />
                 @if (previewDataUrl is not null)
                 {
-                    <div class="mt-2">
-                        <img src="@previewDataUrl" alt="preview" style="max-width:200px;max-height:200px;" />
+                    <div class="image-preview">
+                        <img src="@previewDataUrl" alt="Preview of the selected photo" />
+                        <button class="secondary-btn" type="button" @onclick="RemoveImage">Remove photo</button>
                     </div>
                 }
-            </div>
-
-            <div class="d-flex gap-2">
-                <button class="btn btn-primary" type="submit" disabled="@isSubmitting">Create post</button>
-                <button class="btn btn-secondary" type="button" @onclick="ResetForm" disabled="@isSubmitting">Reset</button>
             </div>
 
             @if (!string.IsNullOrEmpty(statusMessage))
             {
-                <div class="mt-3 alert @statusClass">@statusMessage</div>
+                <div class="alert @statusClass" role="@(statusClass == "alert-danger" ? "alert" : "status")">@statusMessage</div>
             }
+
+            <div class="form-actions">
+                <button class="primary-btn" type="submit" disabled="@isSubmitting">
+                    @if (isSubmitting)
+                    {
+                        <span>Posting...</span>
+                    }
+                    else
+                    {
+                        <span>Create post</span>
+                    }
+                </button>
+                <button class="secondary-btn" type="button" @onclick="ResetForm" disabled="@isSubmitting">Reset</button>
+            </div>
         </EditForm>
     </div>
 </section>
 
 @code {
+    private const string OtherCategory = "__other";
+    private const long MaxImageBytes = 5 * 1024 * 1024;
+    private static readonly string[] AllowedImageTypes = ["image/png", "image/jpeg", "image/gif"];
+
     private CreateModel model = new();
     private List<string>? categories;
     private string? selectedCategory;
@@ -97,64 +121,91 @@
     private bool isSubmitting;
     private string? statusMessage;
     private string statusClass = "";
-    private IBrowserFile? selectedFile;
+    private string? fileError;
+    private byte[]? imageBytes;
+    private string? imageFileName;
     private string? previewDataUrl;
 
     private class CreateModel
     {
-        [System.ComponentModel.DataAnnotations.Required]
+        [Required(ErrorMessage = "Please enter a title.")]
+        [StringLength(100, ErrorMessage = "Keep the title under 100 characters.")]
         public string? Title { get; set; }
-        [System.ComponentModel.DataAnnotations.Required]
+
+        [Required(ErrorMessage = "Please add a short description.")]
+        [StringLength(1000, ErrorMessage = "Keep the description under 1000 characters.")]
         public string? Description { get; set; }
-        [System.ComponentModel.DataAnnotations.Required]
+
+        [Required(ErrorMessage = "Please say where the item was lost or found.")]
+        [StringLength(100, ErrorMessage = "Keep the location under 100 characters.")]
         public string? LocationFound { get; set; }
-        [System.ComponentModel.DataAnnotations.Required]
+
+        [Required(ErrorMessage = "Please choose a category.")]
         public string? Category { get; set; }
-        [System.ComponentModel.DataAnnotations.Required]
+
+        [Required(ErrorMessage = "Please choose whether you lost or found the item.")]
         public string? PostType { get; set; }
     }
 
     protected override async Task OnInitializedAsync()
     {
         // populate category suggestions from existing posts
-        var items = await PostService.GetAllAsync();
-        categories = Reklaim_frontend.Helpers.ItemQuery.DistinctValues(items, i => i.Category);
+        try
+        {
+            var items = await PostService.GetAllAsync();
+            categories = ItemQuery.DistinctValues(items, i => i.Category);
+        }
+        catch (Exception)
+        {
+            // Suggestions are optional; "Other..." still lets the user type a category.
+            categories = [];
+        }
     }
 
-    private Task OnCategoryChanged(ChangeEventArgs e)
+    private void OnCategoryChanged()
     {
-        selectedCategory = e.Value?.ToString();
-        if (selectedCategory == "__other")
-        {
-            isOther = true;
-            model.Category = null;
-        }
-        else
-        {
-            isOther = false;
-            model.Category = selectedCategory;
-        }
-
-        return Task.CompletedTask;
+        isOther = selectedCategory == OtherCategory;
+        model.Category = isOther ? null : selectedCategory;
     }
 
     private async Task OnInputFileChange(InputFileChangeEventArgs e)
     {
-        selectedFile = e.File;
-        // limit preview size to 2MB for memory
-        var maxPreview = 2 * 1024 * 1024;
+        RemoveImage();
+        var file = e.File;
+
+        if (!AllowedImageTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
+        {
+            fileError = "That file type isn't supported. Choose a PNG, JPG or GIF.";
+            return;
+        }
+
+        if (file.Size > MaxImageBytes)
+        {
+            fileError = "That photo is larger than 5 MB. Choose a smaller one.";
+            return;
+        }
+
         try
         {
-            using var stream = selectedFile.OpenReadStream(maxPreview);
-            var buffer = new byte[selectedFile.Size > maxPreview ? maxPreview : (int)selectedFile.Size];
-            await stream.ReadAsync(buffer);
-            var base64 = Convert.ToBase64String(buffer);
-            previewDataUrl = $"data:{selectedFile.ContentType};base64,{base64}";
+            using var stream = file.OpenReadStream(MaxImageBytes);
+            using var ms = new MemoryStream();
+            await stream.CopyToAsync(ms);
+            imageBytes = ms.ToArray();
+            imageFileName = file.Name;
+            previewDataUrl = $"data:{file.ContentType};base64,{Convert.ToBase64String(imageBytes)}";
         }
-        catch
+        catch (Exception)
         {
-            previewDataUrl = null;
+            fileError = "We couldn't read that photo. Try another file.";
         }
+    }
+
+    private void RemoveImage()
+    {
+        imageBytes = null;
+        imageFileName = null;
+        previewDataUrl = null;
+        fileError = null;
     }
 
     private async Task HandleValidSubmit()
@@ -163,56 +214,43 @@
         statusMessage = null;
         try
         {
-            Stream? fileStream = null;
-            string? fileName = null;
+            using var fileStream = imageBytes is null ? null : new MemoryStream(imageBytes);
 
-            if (selectedFile != null)
+            var request = new CreateItemRequest
             {
-                // limit server upload to 5 MB
-                var maxUpload = 5 * 1024 * 1024;
-                fileStream = selectedFile.OpenReadStream(maxUpload);
-                fileName = selectedFile.Name;
-            }
-
-            var request = new Reklaim_frontend.Models.CreateItemRequest
-            {
-                Title = model.Title,
-                Description = model.Description,
-                LocationFound = model.LocationFound,
-                Category = model.Category,
+                Title = model.Title?.Trim(),
+                Description = model.Description?.Trim(),
+                LocationFound = model.LocationFound?.Trim(),
+                Category = model.Category?.Trim(),
                 PostType = model.PostType
             };
 
-            var id = await PostService.CreateAsync(request, fileStream, fileName);
+            var id = await PostService.CreateAsync(request, fileStream, imageFileName);
             if (id.HasValue)
             {
-                statusMessage = "Post created successfully.";
-                statusClass = "alert-success";
-                // navigate to details and include a query flag so PostDetails shows the success banner
+                // PostDetails shows the success banner when it sees ?created=1
                 Navigation.NavigateTo($"post-details/{id.Value}?created=1");
+                return;
             }
-            else
-            {
-                statusMessage = "Failed to create post. Check server or authentication.";
-                statusClass = "alert-danger";
-            }
-        }
-        catch (Exception ex)
-        {
-            statusMessage = "Unexpected error: " + ex.Message;
+
+            statusMessage = "We couldn't create your post. Check that you're signed in and try again.";
             statusClass = "alert-danger";
         }
-        finally
+        catch (Exception)
         {
-            isSubmitting = false;
+            statusMessage = "Something went wrong while posting. Please try again.";
+            statusClass = "alert-danger";
         }
+
+        isSubmitting = false;
     }
 
     private void ResetForm()
     {
         model = new CreateModel();
-        selectedFile = null;
-        previewDataUrl = null;
+        selectedCategory = null;
+        isOther = false;
         statusMessage = null;
+        RemoveImage();
     }
 }

@@ -6,7 +6,7 @@
 @inject NavigationManager NavigationManager
 @inject IConfiguration Configuration
 
-<form class="auth-form" @onsubmit="HandleSubmit" @onsubmit:preventDefault="true">
+<form class="auth-form" novalidate @onsubmit="HandleSubmit" @onsubmit:preventDefault="true">
     <FormField Label="University Email"
                InputType="email"
                Placeholder="you@university.edu"
