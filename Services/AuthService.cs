@@ -85,4 +85,14 @@ public class AuthService
             return $"Request failed ({(int)response.StatusCode}).";
         }
     }
+
+    /// <summary>
+    /// Return the stored auth token for the current session, or null if none exists.
+    /// This centralizes access to the ProtectedSessionStorage key used by the service.
+    /// </summary>
+    public async Task<string?> GetTokenAsync()
+    {
+        var result = await _sessionStorage.GetAsync<string>("auth_token");
+        return result.Success ? result.Value : null;
+    }
 }

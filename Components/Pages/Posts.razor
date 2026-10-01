@@ -1,0 +1,33 @@
+@page "/posts"
+@rendermode InteractiveServer
+@using Reklaim_frontend.Services
+
+@inject IPostService PostService
+
+<PageTitle>Posts</PageTitle>
+
+<section class="page-section">
+    <div class="page-card">
+        <p class="section-label">Browse</p>
+        <h2>All listings</h2>
+        <p class="muted-text">Browse reported lost and found items.</p>
+
+        @if (items is null)
+        {
+            <LoadingSpinner Label="Loading items..." />
+        }
+        else
+        {
+            <ItemFeed Items="items" SyncWithUrl="true" />
+        }
+    </div>
+</section>
+
+@code {
+    private IReadOnlyList<ItemPostDto>? items;
+
+    protected override async Task OnInitializedAsync()
+    {
+        items = await PostService.GetAllAsync();
+    }
+}

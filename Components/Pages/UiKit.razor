@@ -1,6 +1,7 @@
 @page "/ui-kit"
 @rendermode InteractiveServer
 @using Reklaim_frontend.Services
+@inject IPostService PostService
 
 @* Preview of the shared components so they can be reviewed before use on real pages. Sample data only. *@
 
@@ -78,14 +79,19 @@
     private string? query;
     private string? lastSearch;
 
-    private IReadOnlyList<ItemPostDto>? feedItems = SampleItems.All;
+    private IReadOnlyList<ItemPostDto>? feedItems;
     private readonly IReadOnlyList<ItemPostDto> noItems = [];
     private string? postType;
+
+    protected override async Task OnInitializedAsync()
+    {
+        feedItems = await PostService.GetAllAsync();
+    }
 
     private async Task SimulateLoading()
     {
         feedItems = null;
         await Task.Delay(1500);
-        feedItems = SampleItems.All;
+        feedItems = await PostService.GetAllAsync();
     }
 }

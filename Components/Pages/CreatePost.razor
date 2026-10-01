@@ -1,4 +1,9 @@
 @page "/post-create"
+@using Reklaim_frontend.Services
+@using Microsoft.AspNetCore.Components.Forms
+@inject IPostService PostService
+@inject NavigationManager Navigation
+@using Reklaim_frontend.Helpers
 
 <PageTitle>Create Post</PageTitle>
 
@@ -6,11 +11,208 @@
     <div class="page-card">
         <p class="section-label">Posting</p>
         <h2>Report a lost or found item</h2>
-        <p class="muted-text">This page will contain the item form, upload flow, and validation states.</p>
 
-        <div class="placeholder-box">
-            <strong>Create post page stub</strong>
-            <span>Item type selector, form fields, and submission flow are planned for later.</span>
-        </div>
+        <EditForm Model="model" OnValidSubmit="HandleValidSubmit" FormName="createPostForm">
+            <DataAnnotationsValidator />
+
+            <div class="mb-3">
+                <label class="form-label">Title <span class="text-danger">*</span></label>
+                <InputText class="form-control" @bind-Value="model.Title" aria-required="true" />
+                <ValidationMessage For="() => model.Title" class="text-danger small" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Description <span class="text-danger">*</span></label>
+                <InputTextArea class="form-control" @bind-Value="model.Description" aria-required="true" />
+                <ValidationMessage For="() => model.Description" class="text-danger small" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Location Found <span class="text-danger">*</span></label>
+                <InputText class="form-control" @bind-Value="model.LocationFound" aria-required="true" />
+                <ValidationMessage For="() => model.LocationFound" class="text-danger small" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Category <span class="text-danger">*</span></label>
+                <InputSelect class="form-select" @bind-Value="selectedCategory" @onchange="OnCategoryChanged" aria-required="true">
+                    <option value="">Select...</option>
+                    @if (categories != null)
+                    {
+                        @foreach (var c in categories)
+                        {
+                            <option value="@c">@c</option>
+                        }
+                    }
+                    <option value="__other">Other...</option>
+                </InputSelect>
+                @if (isOther)
+                {
+                    <div class="mt-2">
+                        <InputText class="form-control" @bind-Value="model.Category" placeholder="Enter category" />
+                    </div>
+                }
+                <ValidationMessage For="() => model.Category" class="text-danger small" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Post Type <span class="text-danger">*</span></label>
+                <InputSelect class="form-select" @bind-Value="model.PostType" aria-required="true">
+                    <option value="">Select...</option>
+                    <option value="Found">Found</option>
+                    <option value="Lost">Lost</option>
+                </InputSelect>
+                <ValidationMessage For="() => model.PostType" class="text-danger small" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Image (optional)</label>
+                <InputFile OnChange="OnInputFileChange" />
+                @if (previewDataUrl is not null)
+                {
+                    <div class="mt-2">
+                        <img src="@previewDataUrl" alt="preview" style="max-width:200px;max-height:200px;" />
+                    </div>
+                }
+            </div>
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-primary" type="submit" disabled="@isSubmitting">Create post</button>
+                <button class="btn btn-secondary" type="button" @onclick="ResetForm" disabled="@isSubmitting">Reset</button>
+            </div>
+
+            @if (!string.IsNullOrEmpty(statusMessage))
+            {
+                <div class="mt-3 alert @statusClass">@statusMessage</div>
+            }
+        </EditForm>
     </div>
 </section>
+
+@code {
+    private CreateModel model = new();
+    private List<string>? categories;
+    private string? selectedCategory;
+    private bool isOther;
+    private bool isSubmitting;
+    private string? statusMessage;
+    private string statusClass = "";
+    private IBrowserFile? selectedFile;
+    private string? previewDataUrl;
+
+    private class CreateModel
+    {
+        [System.ComponentModel.DataAnnotations.Required]
+        public string? Title { get; set; }
+        [System.ComponentModel.DataAnnotations.Required]
+        public string? Description { get; set; }
+        [System.ComponentModel.DataAnnotations.Required]
+        public string? LocationFound { get; set; }
+        [System.ComponentModel.DataAnnotations.Required]
+        public string? Category { get; set; }
+        [System.ComponentModel.DataAnnotations.Required]
+        public string? PostType { get; set; }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        // populate category suggestions from existing posts
+        var items = await PostService.GetAllAsync();
+        categories = Reklaim_frontend.Helpers.ItemQuery.DistinctValues(items, i => i.Category);
+    }
+
+    private Task OnCategoryChanged(ChangeEventArgs e)
+    {
+        selectedCategory = e.Value?.ToString();
+        if (selectedCategory == "__other")
+        {
+            isOther = true;
+            model.Category = null;
+        }
+        else
+        {
+            isOther = false;
+            model.Category = selectedCategory;
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private async Task OnInputFileChange(InputFileChangeEventArgs e)
+    {
+        selectedFile = e.File;
+        // limit preview size to 2MB for memory
+        var maxPreview = 2 * 1024 * 1024;
+        try
+        {
+            using var stream = selectedFile.OpenReadStream(maxPreview);
+            var buffer = new byte[selectedFile.Size > maxPreview ? maxPreview : (int)selectedFile.Size];
+            await stream.ReadAsync(buffer);
+            var base64 = Convert.ToBase64String(buffer);
+            previewDataUrl = $"data:{selectedFile.ContentType};base64,{base64}";
+        }
+        catch
+        {
+            previewDataUrl = null;
+        }
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        isSubmitting = true;
+        statusMessage = null;
+        try
+        {
+            Stream? fileStream = null;
+            string? fileName = null;
+
+            if (selectedFile != null)
+            {
+                // limit server upload to 5 MB
+                var maxUpload = 5 * 1024 * 1024;
+                fileStream = selectedFile.OpenReadStream(maxUpload);
+                fileName = selectedFile.Name;
+            }
+
+            var request = new Reklaim_frontend.Models.CreateItemRequest
+            {
+                Title = model.Title,
+                Description = model.Description,
+                LocationFound = model.LocationFound,
+                Category = model.Category,
+                PostType = model.PostType
+            };
+
+            var id = await PostService.CreateAsync(request, fileStream, fileName);
+            if (id.HasValue)
+            {
+                statusMessage = "Post created successfully.";
+                statusClass = "alert-success";
+                // navigate to details and include a query flag so PostDetails shows the success banner
+                Navigation.NavigateTo($"post-details/{id.Value}?created=1");
+            }
+            else
+            {
+                statusMessage = "Failed to create post. Check server or authentication.";
+                statusClass = "alert-danger";
+            }
+        }
+        catch (Exception ex)
+        {
+            statusMessage = "Unexpected error: " + ex.Message;
+            statusClass = "alert-danger";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private void ResetForm()
+    {
+        model = new CreateModel();
+        selectedFile = null;
+        previewDataUrl = null;
+        statusMessage = null;
+    }
+}
