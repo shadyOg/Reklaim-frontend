@@ -1,9 +1,11 @@
-﻿@inherits LayoutComponentBase
+@inherits LayoutComponentBase
+
+<a class="skip-link" href="#main-content">Skip to main content</a>
 
 <div class="app-shell">
     <aside class="sidebar">
         <div class="brand-block">
-            <div class="brand-mark">R</div>
+            <div class="brand-mark" aria-hidden="true">R</div>
             <div>
                 <p class="eyebrow">Campus Lost &amp; Found</p>
                 <h2>Reklaim</h2>
@@ -16,17 +18,17 @@
     <div class="content-area">
         <header class="topbar">
             <div class="topbar-text">
-                <span class="topbar-label">Frontend shell</span>
+                <span class="topbar-label">Student portal</span>
                 <h1>Reklaim dashboard</h1>
             </div>
 
             <div class="topbar-actions">
-                <button class="secondary-btn" type="button">Report Item</button>
+                <a class="secondary-btn" href="post-create">Report Item</a>
                 <LoginNavigation />
             </div>
         </header>
 
-        <main class="page-content">
+        <main id="main-content" class="page-content" tabindex="-1">
             @Body
         </main>
     </div>

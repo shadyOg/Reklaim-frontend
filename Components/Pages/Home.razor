@@ -14,7 +14,7 @@
         <p class="muted-text">Browse campus listings or report an item for the community.</p>
     </div>
 
-    <a class="primary-btn" href="/post-create">Report an item</a>
+    <a class="primary-btn" href="post-create">Report an item</a>
 </section>
 
 @if (!string.IsNullOrWhiteSpace(loadError))
@@ -35,19 +35,19 @@ else
         <div class="listing-toggle" role="group" aria-label="Choose listing type">
             <button class="@(selectedPostType is null ? "active" : "")"
                     type="button"
-                    aria-pressed="@(selectedPostType is null)"
+                    aria-pressed="@(selectedPostType is null ? "true" : "false")"
                     @onclick="SelectAll">
                 All items
             </button>
             <button class="@(selectedPostType == "Lost" ? "active" : "")"
                     type="button"
-                    aria-pressed="@(selectedPostType == "Lost")"
+                    aria-pressed="@(selectedPostType == "Lost" ? "true" : "false")"
                     @onclick="SelectLost">
                 Lost items
             </button>
             <button class="@(selectedPostType == "Found" ? "active" : "")"
                     type="button"
-                    aria-pressed="@(selectedPostType == "Found")"
+                    aria-pressed="@(selectedPostType == "Found" ? "true" : "false")"
                     @onclick="SelectFound">
                 Found items
             </button>
@@ -55,10 +55,14 @@ else
     </section>
 
     <ItemFeed Items="items"
-              PostType="selectedPostType"
+              PostType="@selectedPostType"
               SyncWithUrl="true"
               EmptyTitle="No listings yet"
-              EmptyMessage="There are no lost or found items to display right now." />
+              EmptyMessage="There are no lost or found items to display right now.">
+        <EmptyContent>
+            <a class="primary-btn" href="post-create">Report an item</a>
+        </EmptyContent>
+    </ItemFeed>
 }
 
 @code {

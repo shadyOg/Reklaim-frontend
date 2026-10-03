@@ -133,3 +133,9 @@
         transform: none;
     }
 }
+
+/* Keyboard users tabbing to "View details" get the same lift as a hover. */
+.item-card:focus-within {
+    border-color: #bfd2eb;
+    box-shadow: 0 14px 30px rgba(17, 39, 67, 0.08);
+}

@@ -1,6 +1,7 @@
-﻿<Router AppAssembly="typeof(Program).Assembly">
+<Router AppAssembly="typeof(Program).Assembly">
     <Found Context="routeData">
         <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
-        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+        @* Move focus to the page's own heading, not the topbar title that is the same on every page. *@
+        <FocusOnNavigate RouteData="routeData" Selector="main h1, main h2" />
     </Found>
 </Router>
