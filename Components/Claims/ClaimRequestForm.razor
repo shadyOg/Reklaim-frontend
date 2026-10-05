@@ -1,0 +1,78 @@
+@using Reklaim_frontend.Models
+@using Reklaim_frontend.Services
+@using System.ComponentModel.DataAnnotations
+
+@inject IClaimService ClaimService
+
+<div class="claim-form">
+    <div class="claim-form-heading">
+        <h3>Verify your ownership</h3>
+        <p class="muted-text">Share a private detail only the true owner is likely to know. Do not include passwords or sensitive account information.</p>
+    </div>
+
+    <EditForm Model="request" OnValidSubmit="SubmitAsync" FormName="claimRequestForm" class="form-stack">
+        <DataAnnotationsValidator />
+        <div class="form-group">
+            <label for="proof-description">Proof of ownership</label>
+            <InputTextArea id="proof-description"
+                           class="form-control"
+                           @bind-Value="request.ProofDescription"
+                           placeholder="For example: describe a mark, private detail, or what was inside the item."
+                           aria-describedby="proof-hint" />
+            <span id="proof-hint" class="form-hint">Do not reveal the most sensitive detail publicly in the post.</span>
+            <ValidationMessage For="() => request.ProofDescription" />
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(errorMessage))
+        {
+            <div class="alert alert-danger" role="alert">@errorMessage</div>
+        }
+
+        <div class="form-actions">
+            <button class="primary-btn" type="submit" disabled="@isSubmitting">
+                @(isSubmitting ? "Submitting..." : "Submit claim")
+            </button>
+            <button class="secondary-btn" type="button" @onclick="CancelAsync" disabled="@isSubmitting">Cancel</button>
+        </div>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter, EditorRequired] public int PostId { get; set; }
+    [Parameter] public EventCallback<ClaimRequestDto> Submitted { get; set; }
+    [Parameter] public EventCallback Cancelled { get; set; }
+
+    private CreateClaimRequest request = new();
+    private bool isSubmitting;
+    private string? errorMessage;
+
+    private async Task SubmitAsync()
+    {
+        isSubmitting = true;
+        errorMessage = null;
+        request.PostId = PostId;
+
+        try
+        {
+            var claim = await ClaimService.SubmitAsync(request);
+            if (claim is null)
+            {
+                errorMessage = "This item already has a claim in progress, or the claim could not be submitted.";
+                return;
+            }
+
+            await Submitted.InvokeAsync(claim);
+            request = new CreateClaimRequest { PostId = PostId };
+        }
+        catch (Exception)
+        {
+            errorMessage = "Something went wrong while submitting your claim. Please try again.";
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private Task CancelAsync() => Cancelled.InvokeAsync();
+}

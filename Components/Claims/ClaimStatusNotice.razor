@@ -1,0 +1,34 @@
+@using Reklaim_frontend.Models
+
+@if (Claim is not null)
+{
+    <div class="claim-status-notice @(Claim.Status.ToLowerInvariant())" role="status">
+        <StatusBadge Status="@Claim.Status" />
+        <div>
+            <strong>@StatusTitle</strong>
+            <p>@StatusMessage</p>
+            @if (Claim.Status.Equals("Approved", StringComparison.OrdinalIgnoreCase))
+            {
+                <p><strong>Contact:</strong> @Claim.FinderPhoneNumber</p>
+            }
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter] public ClaimRequestDto? Claim { get; set; }
+
+    private string StatusTitle => Claim?.Status.ToLowerInvariant() switch
+    {
+        "approved" => "Claim approved",
+        "denied" => "Claim denied",
+        _ => "Claim pending review"
+    };
+
+    private string StatusMessage => Claim?.Status.ToLowerInvariant() switch
+    {
+        "approved" => "The finder has approved your claim. Contact details are now visible to coordinate the handoff.",
+        "denied" => "The finder did not approve this claim. Contact details remain private.",
+        _ => "Your proof has been sent to the finder. Contact details remain private while it is reviewed."
+    };
+}

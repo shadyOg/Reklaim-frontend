@@ -1,0 +1,51 @@
+@using Reklaim_frontend.Models
+
+<article class="claim-review-panel">
+    <div class="claim-review-header">
+        <div>
+            <p class="section-label">Claim #@Claim.Id</p>
+            <h3>@(Claim.PostTitle ?? $"Post #{Claim.PostId}")</h3>
+        </div>
+        <StatusBadge Status="@Claim.Status" />
+    </div>
+
+    <dl class="claim-meta">
+        <dt>Claimant</dt>
+        <dd>@(Claim.ClaimerName ?? "Student")</dd>
+        <dt>Submitted</dt>
+        <dd>@Claim.DateSubmitted.ToLocalTime().ToString("d MMM yyyy, HH:mm")</dd>
+    </dl>
+
+    <div class="proof-box">
+        <strong>Proof description</strong>
+        <p>@Claim.ProofDescription</p>
+    </div>
+
+    @if (Claim.Status.Equals("Approved", StringComparison.OrdinalIgnoreCase))
+    {
+        <div class="alert alert-success" role="status">
+            Contact details revealed: claimant @Claim.ClaimerPhoneNumber; finder @Claim.FinderPhoneNumber.
+        </div>
+    }
+    else if (Claim.Status.Equals("Denied", StringComparison.OrdinalIgnoreCase))
+    {
+        <div class="alert alert-warning" role="status">This claim was denied. Contact details remain private.</div>
+    }
+    else
+    {
+        <p class="form-hint">Contact details remain private until this claim is approved.</p>
+        <div class="btn-row">
+            <button class="primary-btn" type="button" @onclick="ApproveAsync" disabled="@IsBusy">Approve</button>
+            <button class="danger-btn" type="button" @onclick="DenyAsync" disabled="@IsBusy">Deny</button>
+        </div>
+    }
+</article>
+
+@code {
+    [Parameter, EditorRequired] public ClaimRequestDto Claim { get; set; } = new();
+    [Parameter] public bool IsBusy { get; set; }
+    [Parameter] public EventCallback<string> Decision { get; set; }
+
+    private Task ApproveAsync() => Decision.InvokeAsync("Approved");
+    private Task DenyAsync() => Decision.InvokeAsync("Denied");
+}
