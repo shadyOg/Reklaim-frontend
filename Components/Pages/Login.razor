@@ -10,6 +10,11 @@
         <h2>Welcome back</h2>
         <p class="muted-text">Sign in with your university email to continue.</p>
 
+        @if (Registered == 1)
+        {
+            <div class="alert alert-success" role="status">Account created. Sign in with your new details to continue.</div>
+        }
+
         <LoginForm />
 
         <p class="muted-text">
@@ -17,3 +22,8 @@
         </p>
     </div>
 </section>
+
+@code {
+    // Set by RegisterForm after a successful sign-up.
+    [SupplyParameterFromQuery] public int? Registered { get; set; }
+}

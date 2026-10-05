@@ -1,5 +1,4 @@
-﻿            NavigationManager.NavigateTo("/login?registered=1", forceLoad: true);
-@using Reklaim_frontend.Helpers
+﻿@using Reklaim_frontend.Helpers
 @using Reklaim_frontend.Models
 @using Reklaim_frontend.Services
 @using Reklaim_frontend.Components.Shared
@@ -104,7 +103,8 @@
 
         if (result.Success)
         {
-            NavigationManager.NavigateTo("/", forceLoad: true);
+            // Registering does not sign the user in, so send them to log in with a success message.
+            NavigationManager.NavigateTo("/login?registered=1");
         }
         else
         {
