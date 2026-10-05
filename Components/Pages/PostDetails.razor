@@ -1,5 +1,6 @@
 @page "/post-details/{Id:int}"
 @rendermode InteractiveServer
+@using Reklaim_frontend.Helpers
 @using Reklaim_frontend.Services
 @inject IPostService PostService
 @inject IClaimService ClaimService
@@ -47,7 +48,7 @@
                 <div class="detail-media">
                     @if (!string.IsNullOrEmpty(primaryImage))
                     {
-                        <img src="@primaryImage" alt="Photo of @post.Title" />
+                        <img src="@MediaUrls.Resolve(primaryImage, ApiBase)" alt="Photo of @post.Title" />
                     }
                     else
                     {
@@ -117,6 +118,7 @@
     private string actionClass = "";
     private bool showClaimForm;
     private ClaimRequestDto? submittedClaim;
+    private string ApiBase => Configuration["Api:PublicBaseUrl"] ?? "";
 
     // Only active listings can receive a new claim.
     private bool CanClaim => post is not null
@@ -145,7 +147,7 @@
         try
         {
             post = await PostService.GetByIdAsync(Id);
-            primaryImage = NormalizeImageUrl(post?.ImageUrls?.FirstOrDefault() ?? post?.ImageUrl);
+            primaryImage = post?.ImageUrls?.FirstOrDefault() ?? post?.ImageUrl;
         }
         catch (Exception)
         {
@@ -180,16 +182,4 @@
         showClaimForm = false;
     }
 
-    private string? NormalizeImageUrl(string? imageUrl)
-    {
-        if (string.IsNullOrWhiteSpace(imageUrl) || Uri.TryCreate(imageUrl, UriKind.Absolute, out _))
-        {
-            return imageUrl;
-        }
-
-        var apiBaseUrl = Configuration["Api:BaseUrl"]?.TrimEnd('/');
-        return string.IsNullOrWhiteSpace(apiBaseUrl)
-            ? imageUrl
-            : $"{apiBaseUrl}/{imageUrl.TrimStart('/')}";
-    }
 }

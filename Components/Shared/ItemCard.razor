@@ -1,12 +1,13 @@
 @* Card for a lost/found listing. Fields follow the ItemPost contract in the README. *@
 
+@using Reklaim_frontend.Helpers
 @inject IConfiguration Configuration
 
 <article class="item-card">
     <div class="item-media">
-        @if (!string.IsNullOrWhiteSpace(DisplayImageUrl))
+        @if (!string.IsNullOrWhiteSpace(ImageUrl))
         {
-            <img src="@DisplayImageUrl" alt="@Title" loading="lazy" />
+            <img src="@MediaUrls.Resolve(ImageUrl, ApiBase)" alt="@Title" loading="lazy" />
         }
         else
         {
@@ -74,18 +75,5 @@
     // Link to the detail page. The footer is hidden when not set.
     [Parameter] public string? Href { get; set; }
 
-    private string? DisplayImageUrl => NormalizeImageUrl(ImageUrl);
-
-    private string? NormalizeImageUrl(string? imageUrl)
-    {
-        if (string.IsNullOrWhiteSpace(imageUrl) || Uri.TryCreate(imageUrl, UriKind.Absolute, out _))
-        {
-            return imageUrl;
-        }
-
-        var apiBaseUrl = Configuration["Api:BaseUrl"]?.TrimEnd('/');
-        return string.IsNullOrWhiteSpace(apiBaseUrl)
-            ? imageUrl
-            : $"{apiBaseUrl}/{imageUrl.TrimStart('/')}";
-    }
+    private string ApiBase => Configuration["Api:PublicBaseUrl"] ?? "";
 }
