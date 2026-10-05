@@ -27,13 +27,38 @@ public class AuthService
 
     public async Task<ApiResult<AuthResponseDto>> RegisterAsync(RegisterRequestDto request)
     {
-        return await PostAuthRequest("api/auth/register", request);
+        try
+        {
+            var response = await _http.PostAsJsonAsync("api/auth/register", request);
+            if (!response.IsSuccessStatusCode)
+            {
+                return ApiResult<AuthResponseDto>.Fail(await ReadErrorMessage(response));
+            }
+
+            return ApiResult<AuthResponseDto>.Ok(new AuthResponseDto());
+        }
+        catch (Exception)
+        {
+            return ApiResult<AuthResponseDto>.Fail("Could not reach the server. Please check your connection and try again.");
+        }
     }
 
     public async Task<UserDto?> GetCurrentUserAsync()
     {
         var result = await _sessionStorage.GetAsync<UserDto>("auth_user");
-        return result.Success ? result.Value : null;
+        if (result.Success && result.Value is not null)
+        {
+            return result.Value;
+        }
+
+        var token = await GetTokenAsync();
+        return string.IsNullOrWhiteSpace(token)
+            ? null
+            : new UserDto
+            {
+                Name = "Signed-in student",
+                StudentEmail = "Signed-in student"
+            };
     }
 
     public async Task LogoutAsync()
@@ -60,8 +85,26 @@ public class AuthService
                 return ApiResult<AuthResponseDto>.Fail("Unexpected response from server.");
             }
 
+            if (string.IsNullOrWhiteSpace(data.Token))
+            {
+                return ApiResult<AuthResponseDto>.Fail("The server did not return an authentication token.");
+            }
+
             await _sessionStorage.SetAsync("auth_token", data.Token);
-            await _sessionStorage.SetAsync("auth_user", data.User);
+            var user = data.User;
+            if (user is null && request is LoginRequestDto login)
+            {
+                user = new UserDto
+                {
+                    Name = login.Email,
+                    StudentEmail = login.Email
+                };
+            }
+
+            if (user is not null)
+            {
+                await _sessionStorage.SetAsync("auth_user", user);
+            }
 
             return ApiResult<AuthResponseDto>.Ok(data);
         }

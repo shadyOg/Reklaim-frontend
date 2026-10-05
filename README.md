@@ -17,6 +17,30 @@ The frontend should make the experience fast, simple, and trustworthy. Students 
 
 ---
 
+## Running the Frontend Locally
+
+From the repository root, run:
+
+```powershell
+dotnet run --launch-profile http
+```
+
+Then open the application in your browser:
+
+```text
+http://localhost:5285
+```
+
+The HTTP profile is configured in `Properties/launchSettings.json`. Keep the terminal running while using the app. Stop the frontend with `Ctrl+C`.
+
+To verify the project builds without starting it, run:
+
+```powershell
+dotnet build
+```
+
+---
+
 ## 2. Recommended Stack Decision
 
 ### Chosen approach: Blazor Web App

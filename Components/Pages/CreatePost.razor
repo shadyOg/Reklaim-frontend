@@ -5,6 +5,7 @@
 @using Reklaim_frontend.Helpers
 @inject IPostService PostService
 @inject NavigationManager Navigation
+@inject ILogger<CreatePost> Logger
 
 <PageTitle>Create Post</PageTitle>
 
@@ -72,8 +73,8 @@
 
             <div class="form-group">
                 <label for="post-image">Photo (optional)</label>
-                <InputFile id="post-image" class="form-control" accept=".png,.jpg,.jpeg,.gif" OnChange="OnInputFileChange" aria-describedby="post-image-hint" />
-                <span id="post-image-hint" class="form-hint">PNG, JPG or GIF, up to 5 MB.</span>
+                <InputFile id="post-image" class="form-control" accept=".png,.jpg,.jpeg" OnChange="OnInputFileChange" aria-describedby="post-image-hint" />
+                <span id="post-image-hint" class="form-hint">PNG or JPG, up to 5 MB.</span>
                 @if (!string.IsNullOrEmpty(fileError))
                 {
                     <span class="validation-message" role="alert">@fileError</span>
@@ -112,7 +113,11 @@
 @code {
     private const string OtherCategory = "__other";
     private const long MaxImageBytes = 5 * 1024 * 1024;
-    private static readonly string[] AllowedImageTypes = ["image/png", "image/jpeg", "image/gif"];
+    private static readonly string[] DefaultCategories = [
+        "Electronics", "ID & Cards", "Keys", "Bags", "Clothing",
+        "Books & Stationery", "Bottles", "Wallets", "Other"
+    ];
+    private static readonly string[] AllowedImageTypes = ["image/png", "image/jpeg"];
 
     private CreateModel model = new();
     private List<string>? categories;
@@ -153,12 +158,14 @@
         try
         {
             var items = await PostService.GetAllAsync();
-            categories = ItemQuery.DistinctValues(items, i => i.Category);
+            categories = ItemQuery.DistinctValues(items, i => i.Category)
+                .Union(DefaultCategories, StringComparer.OrdinalIgnoreCase)
+                .Order(StringComparer.OrdinalIgnoreCase)
+                .ToList();
         }
         catch (Exception)
         {
-            // Suggestions are optional; "Other..." still lets the user type a category.
-            categories = [];
+            categories = DefaultCategories.ToList();
         }
     }
 
@@ -175,7 +182,7 @@
 
         if (!AllowedImageTypes.Contains(file.ContentType, StringComparer.OrdinalIgnoreCase))
         {
-            fileError = "That file type isn't supported. Choose a PNG, JPG or GIF.";
+            fileError = "That file type isn't supported. Choose a PNG or JPG image.";
             return;
         }
 
@@ -236,9 +243,20 @@
             statusMessage = "We couldn't create your post. Check that you're signed in and try again.";
             statusClass = "alert-danger";
         }
-        catch (Exception)
+        catch (HttpRequestException ex)
         {
-            statusMessage = "Something went wrong while posting. Please try again.";
+            statusMessage = ex.Message;
+            statusClass = "alert-danger";
+        }
+        catch (UnauthorizedAccessException ex)
+        {
+            statusMessage = ex.Message;
+            statusClass = "alert-warning";
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Create post failed");
+            statusMessage = $"Create post failed: {ex.Message}";
             statusClass = "alert-danger";
         }
 

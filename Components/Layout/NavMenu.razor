@@ -1,17 +1,25 @@
-﻿<nav class="side-nav" aria-label="Main navigation">
+﻿@rendermode InteractiveServer
+@using Reklaim_frontend.Models
+@using Reklaim_frontend.Services
+@inject AuthService AuthService
+
+<nav class="side-nav" aria-label="Main navigation">
     <div class="nav-group">
         <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
             <span class="nav-icon">⌂</span>
             Dashboard
         </NavLink>
-        <NavLink class="nav-link" href="login">
-            <span class="nav-icon">↗</span>
-            Login
-        </NavLink>
-        <NavLink class="nav-link" href="register">
-            <span class="nav-icon">✎</span>
-            Register
-        </NavLink>
+        @if (user is null)
+        {
+            <NavLink class="nav-link" href="login">
+                <span class="nav-icon">↗</span>
+                Login
+            </NavLink>
+            <NavLink class="nav-link" href="register">
+                <span class="nav-icon">✎</span>
+                Register
+            </NavLink>
+        }
         <NavLink class="nav-link" href="post-create">
             <span class="nav-icon">＋</span>
             Create Post
@@ -30,4 +38,20 @@
         </NavLink>
     </div>
 </nav>
+
+@code {
+    private UserDto? user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            user = await AuthService.GetCurrentUserAsync();
+        }
+        catch (InvalidOperationException)
+        {
+            // Protected browser storage is unavailable during static prerendering.
+        }
+    }
+}
 

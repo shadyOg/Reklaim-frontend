@@ -117,10 +117,10 @@
     private bool showClaimForm;
     private ClaimRequestDto? submittedClaim;
 
-    // Only open listings can receive a new claim.
+    // Only active listings can receive a new claim.
     private bool CanClaim => post is not null
         && submittedClaim is null
-        && (string.IsNullOrWhiteSpace(post.Status) || post.Status.Equals("Open", StringComparison.OrdinalIgnoreCase));
+        && (string.IsNullOrWhiteSpace(post.Status) || post.Status.Equals("Active", StringComparison.OrdinalIgnoreCase));
 
     protected override async Task OnInitializedAsync()
     {

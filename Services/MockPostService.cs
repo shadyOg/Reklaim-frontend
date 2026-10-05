@@ -89,7 +89,7 @@ public class MockPostService : IPostService
                 ImageUrl = imageDataUrl,
                 ImageUrls = imageDataUrl is null ? new List<string>() : new List<string> { imageDataUrl },
                 DatePosted = DateTime.UtcNow,
-                Status = "Open",
+                Status = "Active",
                 UserId = 1
             };
 

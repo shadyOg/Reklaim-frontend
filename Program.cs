@@ -12,30 +12,36 @@ public class Program
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
 
-        builder.Services.AddScoped<Reklaim_frontend.Services.AuthService>();
-
         builder.Services.AddHttpClient<Reklaim_frontend.Services.AuthService>(client =>
         {
             client.BaseAddress = new Uri(builder.Configuration["Api:BaseUrl"] ?? "https://localhost:7000/");
         });
 
-        // PostService: typed HttpClient configured to talk to the Hub API
-        builder.Services.AddScoped<Reklaim_frontend.Services.PostService>();
+        // Typed HttpClients configured to talk to the deployed API.
         builder.Services.AddHttpClient<Reklaim_frontend.Services.PostService>(client =>
         {
             client.BaseAddress = new Uri(builder.Configuration["Api:BaseUrl"] ?? "https://localhost:7026/");
         });
 
-        builder.Services.AddScoped<Reklaim_frontend.Services.ClaimService>();
         builder.Services.AddHttpClient<Reklaim_frontend.Services.ClaimService>(client =>
         {
             client.BaseAddress = new Uri(builder.Configuration["Api:BaseUrl"] ?? "https://localhost:7026/");
         });
 
-        // Mock mode for UI development: use in-memory post store. Swap to real PostService when backend is ready.
-        // Singleton so posts created during a demo survive page refreshes and show up for every tab.
-        builder.Services.AddSingleton<Reklaim_frontend.Services.IPostService, Reklaim_frontend.Services.MockPostService>();
-        builder.Services.AddSingleton<Reklaim_frontend.Services.IClaimService, Reklaim_frontend.Services.MockClaimService>();
+        if (builder.Configuration.GetValue<bool>("Api:UseMockServices"))
+        {
+            // Singleton keeps local demo posts and claims available across circuits.
+            builder.Services.AddSingleton<Reklaim_frontend.Services.IPostService, Reklaim_frontend.Services.MockPostService>();
+            builder.Services.AddSingleton<Reklaim_frontend.Services.IClaimService, Reklaim_frontend.Services.MockClaimService>();
+        }
+        else
+        {
+            // Resolve the interfaces from the typed clients so BaseAddress is preserved.
+            builder.Services.AddScoped<Reklaim_frontend.Services.IPostService>(serviceProvider =>
+                serviceProvider.GetRequiredService<Reklaim_frontend.Services.PostService>());
+            builder.Services.AddScoped<Reklaim_frontend.Services.IClaimService>(serviceProvider =>
+                serviceProvider.GetRequiredService<Reklaim_frontend.Services.ClaimService>());
+        }
 
         var app = builder.Build();
 
