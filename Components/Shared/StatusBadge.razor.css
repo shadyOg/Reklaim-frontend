@@ -17,9 +17,9 @@
     background: currentColor;
 }
 
-.status-info { background: #e8f1ff; color: #1d5fbf; }
-.status-teal { background: #e8faf4; color: #127a59; }
-.status-warning { background: #fff5e0; color: #9a5b00; }
-.status-success { background: #e7f8ec; color: #177a3c; }
+.status-info { background: var(--color-primary-soft); color: var(--color-primary); }
+.status-teal { background: var(--color-green-soft); color: var(--color-green-text); }
+.status-warning { background: var(--color-amber-soft); color: var(--color-amber-text); }
+.status-success { background: var(--color-green-soft); color: var(--color-green-text); }
 .status-danger { background: #fdecec; color: #b42323; }
-.status-neutral { background: #eef2f7; color: #4d6280; }
+.status-neutral { background: var(--color-bg); color: var(--color-muted); }

@@ -13,7 +13,8 @@
 
     private string Variant => Status.Trim().ToLowerInvariant() switch
     {
-        "open" or "lost" => "info",
+        "open" or "active" => "info",
+        "lost" => "warning",
         "found" => "teal",
         "pending" or "in review" => "warning",
         "claimed" or "approved" or "returned" or "resolved" => "success",

@@ -4,9 +4,9 @@
     align-items: center;
     text-align: center;
     padding: 3rem 1.5rem;
-    border: 1px dashed #bfd2eb;
+    border: 1px dashed var(--color-border-strong);
     border-radius: 18px;
-    background: #f9fbff;
+    background: var(--color-bg);
 }
 
 .empty-state.compact {
@@ -20,8 +20,8 @@
     place-items: center;
     margin-bottom: 1rem;
     border-radius: 16px;
-    background: #edf3ff;
-    color: #1d8ad0;
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
     font-size: 1.6rem;
     font-weight: 700;
 }
@@ -36,13 +36,13 @@
 .empty-state h3 {
     margin: 0 0 0.4rem;
     font-size: 1.15rem;
-    color: #102b47;
+    color: var(--color-text);
 }
 
 .empty-state p {
     max-width: 420px;
     margin: 0;
-    color: #607189;
+    color: var(--color-muted);
 }
 
 .empty-actions {

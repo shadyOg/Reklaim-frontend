@@ -16,21 +16,21 @@
     font-weight: 700;
     letter-spacing: 0.04em;
     text-transform: uppercase;
-    color: #607189;
+    color: var(--color-muted);
 }
 
 .sort-control select {
     padding: 0.6rem 0.7rem;
-    border: 1px solid #d6e1ef;
+    border: 1px solid var(--color-border);
     border-radius: 10px;
     background: #ffffff;
-    color: #17324d;
+    color: var(--color-text);
 }
 
 .sort-control select:focus {
     outline: none;
-    border-color: #1d8ad0;
-    box-shadow: 0 0 0 3px rgba(29, 138, 208, 0.15);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 3px rgba(41, 82, 85, 0.15);
 }
 
 /* Only shown once the filter panel collapses (tablet and phone). */
@@ -39,21 +39,21 @@
     align-items: center;
     gap: 0.4rem;
     padding: 0.6rem 0.9rem;
-    border: 1px solid #d6e1ef;
+    border: 1px solid var(--color-border);
     border-radius: 10px;
     background: #ffffff;
-    color: #1f446d;
+    color: var(--color-primary);
     font-weight: 600;
     cursor: pointer;
 }
 
 .filter-toggle[aria-expanded="true"] {
-    background: #edf3ff;
-    border-color: #bfd2eb;
+    background: var(--color-primary-soft);
+    border-color: var(--color-border-strong);
 }
 
 .filter-toggle:focus-visible {
-    outline: 2px solid #1d8ad0;
+    outline: 2px solid var(--color-primary);
     outline-offset: 2px;
 }
 
@@ -61,7 +61,7 @@
     min-width: 1.3rem;
     padding: 0.05rem 0.4rem;
     border-radius: 999px;
-    background: #1d8ad0;
+    background: var(--color-primary);
     color: #ffffff;
     font-size: 0.72rem;
     text-align: center;
@@ -86,12 +86,12 @@
 
 .results-count {
     margin: 0;
-    color: #607189;
+    color: var(--color-muted);
     font-size: 0.9rem;
 }
 
 .results-count strong {
-    color: #102b47;
+    color: var(--color-text);
 }
 
 .filter-chips {
@@ -108,26 +108,26 @@
     align-items: center;
     gap: 0.35rem;
     padding: 0.3rem 0.65rem;
-    border: 1px solid #cfe0f5;
+    border: 1px solid var(--color-border);
     border-radius: 999px;
-    background: #edf3ff;
-    color: #1f446d;
+    background: var(--color-primary-soft);
+    color: var(--color-primary);
     font-size: 0.8rem;
     font-weight: 600;
     cursor: pointer;
 }
 
 .filter-chip span {
-    color: #607189;
+    color: var(--color-muted);
     font-size: 0.7rem;
 }
 
 .filter-chip:hover {
-    border-color: #1d8ad0;
+    border-color: var(--color-primary);
 }
 
 .filter-chip:focus-visible {
-    outline: 2px solid #1d8ad0;
+    outline: 2px solid var(--color-primary);
     outline-offset: 2px;
 }
 
