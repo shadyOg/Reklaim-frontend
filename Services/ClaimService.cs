@@ -19,27 +19,42 @@ public class ClaimService : IClaimService
     {
         await AddAuthHeaderAsync();
         var response = await http.PostAsJsonAsync("api/claims", request);
-        return response.IsSuccessStatusCode
-            ? await response.Content.ReadFromJsonAsync<ClaimRequestDto>()
-            : null;
+        if (!response.IsSuccessStatusCode)
+        {
+            return null;
+        }
+
+        var result = await response.Content.ReadFromJsonAsync<ClaimSubmissionResponse>();
+        return result is null ? null : new ClaimRequestDto
+        {
+            Id = result.Id,
+            PostId = request.PostId,
+            ClaimerUserId = 0,
+            ProofDescription = request.ProofDescription,
+            Status = "Pending",
+            DateSubmitted = DateTime.UtcNow
+        };
     }
 
     public async Task<IReadOnlyList<ClaimRequestDto>> GetPendingForReviewAsync()
     {
         await AddAuthHeaderAsync();
-        return await http.GetFromJsonAsync<List<ClaimRequestDto>>("api/claims/review") ?? [];
+        return await http.GetFromJsonAsync<List<ClaimRequestDto>>("api/claims/on-my-posts") ?? [];
     }
 
     public async Task<IReadOnlyList<ClaimRequestDto>> GetMineAsync()
     {
         await AddAuthHeaderAsync();
-        return await http.GetFromJsonAsync<List<ClaimRequestDto>>("api/claims/mine") ?? [];
+        return await http.GetFromJsonAsync<List<ClaimRequestDto>>("api/claims/my-claims") ?? [];
     }
 
     public async Task<bool> ReviewAsync(int claimId, string status)
     {
         await AddAuthHeaderAsync();
-        var response = await http.PatchAsync($"api/claims/{claimId}/status", JsonContent.Create(new { Status = status }));
+        var response = await http.PostAsJsonAsync($"api/claims/{claimId}/review", new
+        {
+            approve = status.Equals("Approved", StringComparison.OrdinalIgnoreCase)
+        });
         return response.IsSuccessStatusCode;
     }
 

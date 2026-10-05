@@ -1,5 +1,11 @@
 namespace Reklaim_frontend.Models;
 
+public class ClaimSubmissionResponse
+{
+    public int Id { get; set; }
+    public string? Message { get; set; }
+}
+
 public class ClaimRequestDto
 {
     public int Id { get; set; }

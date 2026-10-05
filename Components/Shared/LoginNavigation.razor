@@ -1,1 +1,52 @@
-<a class="primary-btn" href="login">Login</a>
+@rendermode InteractiveServer
+@using Reklaim_frontend.Models
+@using Reklaim_frontend.Services
+@inject AuthService AuthService
+@inject NavigationManager Navigation
+
+@if (isLoading)
+{
+	<span class="topbar-user">Checking session...</span>
+}
+else if (user is null)
+{
+	<a class="primary-btn" href="/login">Login</a>
+}
+else
+{
+	<div class="topbar-user-menu">
+		<span class="topbar-user">@DisplayName</span>
+		<button class="secondary-btn" type="button" @onclick="LogoutAsync">Logout</button>
+	</div>
+}
+
+@code {
+	private UserDto? user;
+	private bool isLoading = true;
+
+	private string DisplayName => string.IsNullOrWhiteSpace(user?.Name)
+		? user?.StudentEmail ?? "Student"
+		: user.Name;
+
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
+			user = await AuthService.GetCurrentUserAsync();
+		}
+		catch (InvalidOperationException)
+		{
+			// Protected browser storage is unavailable during static prerendering.
+		}
+		finally
+		{
+			isLoading = false;
+		}
+	}
+
+	private async Task LogoutAsync()
+	{
+		await AuthService.LogoutAsync();
+		Navigation.NavigateTo("/login", forceLoad: true);
+	}
+}

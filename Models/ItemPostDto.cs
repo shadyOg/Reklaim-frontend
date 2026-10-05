@@ -1,5 +1,7 @@
 namespace Reklaim_frontend.Models;
 
+using System.Text.Json.Serialization;
+
 /// <summary>
 /// A lost/found listing. Mirrors the ItemPost contract in the README.
 /// </summary>
@@ -22,13 +24,15 @@ public class ItemPostDto
 
     public DateTime DatePosted { get; set; } = DateTime.UtcNow;
 
-    // e.g. "Open", "Pending", "Claimed"
+    // e.g. "Active", "Claimed", "Resolved"
     public string Status { get; set; } = "";
 
+    [JsonPropertyName("postedByUserId")]
     public int UserId { get; set; }
 
     // Additional metadata (non-breaking additions)
     public string? Condition { get; set; }
     public decimal? EstimatedValue { get; set; }
+    [JsonPropertyName("postedByName")]
     public string? OwnerName { get; set; }
 }

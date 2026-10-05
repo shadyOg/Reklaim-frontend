@@ -75,7 +75,7 @@
 
     [Parameter] public IReadOnlyList<string> Locations { get; set; } = [];
 
-    [Parameter] public IReadOnlyList<string> Statuses { get; set; } = ["Open", "Pending", "Claimed"];
+    [Parameter] public IReadOnlyList<string> Statuses { get; set; } = ["Active", "Claimed", "Resolved"];
 
     // Unique per instance so labels still work when two panels are on one page.
     private readonly string idPrefix = $"filter-{Guid.NewGuid():N}";
