@@ -4,6 +4,7 @@
 @inject IPostService PostService
 @inject IClaimService ClaimService
 @inject NavigationManager Nav
+@inject IConfiguration Configuration
 @using Microsoft.AspNetCore.WebUtilities
 
 <PageTitle>@(post is null ? "Post Details" : $"{post.Title} · Post Details")</PageTitle>
@@ -144,7 +145,7 @@
         try
         {
             post = await PostService.GetByIdAsync(Id);
-            primaryImage = post?.ImageUrls?.FirstOrDefault() ?? post?.ImageUrl;
+            primaryImage = NormalizeImageUrl(post?.ImageUrls?.FirstOrDefault() ?? post?.ImageUrl);
         }
         catch (Exception)
         {
@@ -177,5 +178,18 @@
     {
         submittedClaim = claim;
         showClaimForm = false;
+    }
+
+    private string? NormalizeImageUrl(string? imageUrl)
+    {
+        if (string.IsNullOrWhiteSpace(imageUrl) || Uri.TryCreate(imageUrl, UriKind.Absolute, out _))
+        {
+            return imageUrl;
+        }
+
+        var apiBaseUrl = Configuration["Api:BaseUrl"]?.TrimEnd('/');
+        return string.IsNullOrWhiteSpace(apiBaseUrl)
+            ? imageUrl
+            : $"{apiBaseUrl}/{imageUrl.TrimStart('/')}";
     }
 }
