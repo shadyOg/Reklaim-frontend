@@ -26,9 +26,16 @@ public class Program
             client.BaseAddress = new Uri(builder.Configuration["Api:BaseUrl"] ?? "https://localhost:7026/");
         });
 
+        builder.Services.AddScoped<Reklaim_frontend.Services.ClaimService>();
+        builder.Services.AddHttpClient<Reklaim_frontend.Services.ClaimService>(client =>
+        {
+            client.BaseAddress = new Uri(builder.Configuration["Api:BaseUrl"] ?? "https://localhost:7026/");
+        });
+
         // Mock mode for UI development: use in-memory post store. Swap to real PostService when backend is ready.
         // Singleton so posts created during a demo survive page refreshes and show up for every tab.
         builder.Services.AddSingleton<Reklaim_frontend.Services.IPostService, Reklaim_frontend.Services.MockPostService>();
+        builder.Services.AddSingleton<Reklaim_frontend.Services.IClaimService, Reklaim_frontend.Services.MockClaimService>();
 
         var app = builder.Build();
 

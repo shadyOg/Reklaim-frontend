@@ -1,16 +1,110 @@
 @page "/claim-review"
+@rendermode InteractiveServer
+@using Reklaim_frontend.Services
+
+@inject IClaimService ClaimService
 
 <PageTitle>Claim Review</PageTitle>
 
 <section class="page-section">
-    <div class="page-card">
+    <div class="page-card wide">
         <p class="section-label">Claims</p>
         <h2>Review incoming claims</h2>
-        <p class="muted-text">This dashboard will show pending claims and approval or denial controls.</p>
+        <p class="muted-text">Review proof before deciding. Contact details stay private until approval.</p>
 
-        <div class="placeholder-box">
-            <strong>Claim review stub</strong>
-            <span>Approval flow and privacy-safe claim review will be implemented later.</span>
-        </div>
+        @if (!string.IsNullOrWhiteSpace(statusMessage))
+        {
+            <div class="alert @statusClass" role="@(statusClass == "alert-danger" ? "alert" : "status")">@statusMessage</div>
+        }
+
+        @if (isLoading)
+        {
+            <LoadingSpinner Label="Loading claims..." />
+        }
+        else if (loadError is not null)
+        {
+            <div class="alert alert-danger" role="alert">
+                @loadError
+                <button class="secondary-btn" type="button" @onclick="LoadClaimsAsync">Try again</button>
+            </div>
+        }
+        else if (claims.Count == 0)
+        {
+            <EmptyState Icon="✓" Title="No pending claims" Message="New claim requests will appear here when students submit proof." />
+        }
+        else
+        {
+            <div class="claim-review-list">
+                @foreach (var claim in claims)
+                {
+                    <ClaimReviewPanel @key="claim.Id"
+                                      Claim="claim"
+                                      IsBusy="@(busyClaimId == claim.Id)"
+                                      Decision="@(status => ReviewClaimAsync(claim, status))" />
+                }
+            </div>
+        }
     </div>
 </section>
+
+@code {
+    private List<ClaimRequestDto> claims = [];
+    private bool isLoading = true;
+    private int? busyClaimId;
+    private string? loadError;
+    private string? statusMessage;
+    private string statusClass = "";
+
+    protected override Task OnInitializedAsync() => LoadClaimsAsync();
+
+    private async Task LoadClaimsAsync()
+    {
+        isLoading = true;
+        loadError = null;
+        try
+        {
+            claims = (await ClaimService.GetPendingForReviewAsync()).ToList();
+        }
+        catch (Exception)
+        {
+            loadError = "We could not load claim requests right now. Please try again.";
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task ReviewClaimAsync(ClaimRequestDto claim, string status)
+    {
+        busyClaimId = claim.Id;
+        statusMessage = null;
+        try
+        {
+            var approved = await ClaimService.ReviewAsync(claim.Id, status);
+            if (!approved)
+            {
+                statusMessage = "That claim could not be updated. It may already have been reviewed.";
+                statusClass = "alert-danger";
+                return;
+            }
+
+            claims.Remove(claim);
+            statusMessage = status.Equals("Approved", StringComparison.OrdinalIgnoreCase)
+                ? "Claim approved. Contact details are now available only to the two parties."
+                : "Claim denied. Contact details remain private.";
+            statusClass = status.Equals("Approved", StringComparison.OrdinalIgnoreCase)
+                ? "alert-success"
+                : "alert-warning";
+        }
+        catch (Exception)
+        {
+            statusMessage = "Something went wrong while updating the claim. Please try again.";
+            statusClass = "alert-danger";
+        }
+        finally
+        {
+            busyClaimId = null;
+        }
+    }
+}

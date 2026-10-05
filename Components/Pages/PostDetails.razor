@@ -2,6 +2,7 @@
 @rendermode InteractiveServer
 @using Reklaim_frontend.Services
 @inject IPostService PostService
+@inject IClaimService ClaimService
 @inject NavigationManager Nav
 @using Microsoft.AspNetCore.WebUtilities
 
@@ -9,7 +10,7 @@
 
 <section class="page-section">
     <div class="page-card wide">
-        <a class="back-link" href="posts"><span aria-hidden="true">←</span> Back to listings</a>
+        <a class="back-link" href="/posts"><span aria-hidden="true">←</span> Back to listings</a>
         <p class="section-label">Listing</p>
         <h2>Item details</h2>
 
@@ -27,12 +28,16 @@
         else if (post is null)
         {
             <EmptyState Icon="?" Title="Item not found" Message="This listing may have been removed, or the link is wrong.">
-                <a class="primary-btn" href="posts">Browse listings</a>
+                <a class="primary-btn" href="/posts">Browse listings</a>
             </EmptyState>
         }
         else
         {
-            @if (!string.IsNullOrEmpty(actionMessage))
+            @if (submittedClaim is not null)
+            {
+                <ClaimStatusNotice Claim="submittedClaim" />
+            }
+            else if (!string.IsNullOrEmpty(actionMessage))
             {
                 <div class="alert @actionClass" role="@(actionClass == "alert-danger" ? "alert" : "status")">@actionMessage</div>
             }
@@ -77,12 +82,19 @@
                         <dd>@post.DatePosted.ToLocalTime().ToString("d MMM yyyy, HH:mm")</dd>
                     </dl>
 
-                    <div class="btn-row">
-                        <button class="primary-btn" type="button" @onclick="ClaimItem" disabled="@(isUpdating || !CanClaim)">
-                            @(isUpdating ? "Sending..." : "Claim this item")
-                        </button>
-                    </div>
-                    @if (!CanClaim)
+                    @if (showClaimForm)
+                    {
+                        <ClaimRequestForm PostId="@post.Id"
+                                          Submitted="HandleClaimSubmitted"
+                                          Cancelled="CancelClaim" />
+                    }
+                    else if (submittedClaim is null && CanClaim)
+                    {
+                        <div class="btn-row">
+                            <button class="primary-btn" type="button" @onclick="OpenClaimForm">Claim this item</button>
+                        </div>
+                    }
+                    else if (submittedClaim is null)
                     {
                         <p class="form-hint claim-note">This item already has a claim in progress or has been returned.</p>
                     }
@@ -100,12 +112,14 @@
     private string? primaryImage;
     private bool isLoading = true;
     private string? loadError;
-    private bool isUpdating;
     private string? actionMessage;
     private string actionClass = "";
+    private bool showClaimForm;
+    private ClaimRequestDto? submittedClaim;
 
     // Only open listings can receive a new claim.
     private bool CanClaim => post is not null
+        && submittedClaim is null
         && (string.IsNullOrWhiteSpace(post.Status) || post.Status.Equals("Open", StringComparison.OrdinalIgnoreCase));
 
     protected override async Task OnInitializedAsync()
@@ -120,6 +134,7 @@
         }
 
         await LoadPostAsync();
+    await LoadExistingClaimAsync();
     }
 
     private async Task LoadPostAsync()
@@ -141,35 +156,26 @@
         }
     }
 
-    private async Task ClaimItem()
+    private async Task LoadExistingClaimAsync()
     {
-        if (post == null) return;
-        isUpdating = true;
-        actionMessage = null;
         try
         {
-            // set to Pending to indicate claimant has requested
-            var ok = await PostService.UpdateStatusAsync(post.Id, "Pending");
-            if (ok)
-            {
-                actionMessage = "Claim request sent.";
-                actionClass = "alert-success";
-                post.Status = "Pending";
-            }
-            else
-            {
-                actionMessage = "Failed to send claim request.";
-                actionClass = "alert-danger";
-            }
+            var claims = await ClaimService.GetMineAsync();
+            submittedClaim = claims.FirstOrDefault(claim => claim.PostId == Id);
         }
         catch (Exception)
         {
-            actionMessage = "Something went wrong while sending your claim. Please try again.";
-            actionClass = "alert-danger";
+            // Claim history is supplemental; the item remains usable if it cannot be loaded.
         }
-        finally
-        {
-            isUpdating = false;
-        }
+    }
+
+    private void OpenClaimForm() => showClaimForm = true;
+
+    private void CancelClaim() => showClaimForm = false;
+
+    private void HandleClaimSubmitted(ClaimRequestDto claim)
+    {
+        submittedClaim = claim;
+        showClaimForm = false;
     }
 }

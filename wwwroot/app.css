@@ -540,6 +540,104 @@ a:focus-visible {
     margin: 0.6rem 0 0;
 }
 
+.claim-form {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid #e1e8f3;
+}
+
+.claim-form-heading h3 {
+    margin-bottom: 0.35rem;
+    color: #102b47;
+}
+
+.claim-form-heading .muted-text {
+    margin-bottom: 0;
+}
+
+.claim-status-notice {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.8rem;
+    margin-bottom: 1.25rem;
+    padding: 1rem;
+    border: 1px solid #c6dbf5;
+    border-radius: 12px;
+    background: #f1f7ff;
+    color: #1a4a80;
+}
+
+.claim-status-notice p {
+    margin: 0.25rem 0 0;
+}
+
+.claim-status-notice.approved {
+    border-color: #b6e4c6;
+    background: #effaf3;
+    color: #145c30;
+}
+
+.claim-status-notice.denied {
+    border-color: #f3d9a4;
+    background: #fff9ec;
+    color: #7a4800;
+}
+
+.claim-review-list {
+    display: grid;
+    gap: 1rem;
+    margin-top: 1.5rem;
+}
+
+.claim-review-panel {
+    padding: 1.25rem;
+    border: 1px solid #e1e8f3;
+    border-radius: 14px;
+    background: #ffffff;
+}
+
+.claim-review-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.claim-review-header h3 {
+    margin: 0;
+    color: #102b47;
+}
+
+.claim-meta {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 0.35rem 1rem;
+    margin: 1rem 0;
+    font-size: 0.9rem;
+}
+
+.claim-meta dt {
+    color: #607189;
+    font-weight: 600;
+}
+
+.claim-meta dd {
+    margin: 0;
+}
+
+.proof-box {
+    margin-bottom: 1rem;
+    padding: 1rem;
+    border-left: 4px solid #1d8ad0;
+    background: #f4f8ff;
+}
+
+.proof-box p {
+    margin: 0.4rem 0 0;
+    color: #4d6280;
+    white-space: pre-wrap;
+}
+
 /* ---------- Forms ---------- */
 .form-stack {
     display: flex;
