@@ -6,6 +6,7 @@ namespace Reklaim_frontend.Services;
 
 public class MockPostService : IPostService
 {
+        private readonly List<ClaimRecord> _claims = new();
     private readonly List<ItemPostDto> _items;
     private readonly object _lock = new();
     private int _nextId;
@@ -33,6 +34,18 @@ public class MockPostService : IPostService
 
         _nextId = _items.Any() ? _items.Max(x => x.Id) + 1 : 1;
     }
+
+    // Simple in-memory claim record for demo/testing
+    internal class ClaimRecord
+    {
+        public int Id { get; set; }
+        public int PostId { get; set; }
+        public int ClaimantUserId { get; set; }
+        public string? ProofDescription { get; set; }
+        public string? Contact { get; set; }
+        public DateTime Created { get; set; }
+    }
+
 
     public Task<List<ItemPostDto>> GetAllAsync()
     {
@@ -106,6 +119,38 @@ public class MockPostService : IPostService
             var item = _items.FirstOrDefault(x => x.Id == id);
             if (item is null) return Task.FromResult(false);
             item.Status = status;
+            return Task.FromResult(true);
+        }
+    }
+
+    public Task<bool> SubmitClaimAsync(int id, ClaimRequestDto claim)
+    {
+        if (claim is null) return Task.FromResult(false);
+        lock (_lock)
+        {
+            var item = _items.FirstOrDefault(x => x.Id == id);
+            if (item is null) return Task.FromResult(false);
+
+            // Basic validation: require a non-empty proof description
+            if (string.IsNullOrWhiteSpace(claim.ProofDescription) || claim.ProofDescription.Length < 10)
+            {
+                return Task.FromResult(false);
+            }
+
+            // create claim record
+            var record = new ClaimRecord
+            {
+                Id = _claims.Count + 1,
+                PostId = id,
+                ClaimantUserId = claim.ClaimantUserId,
+                ProofDescription = claim.ProofDescription,
+                Contact = claim.Contact,
+                Created = DateTime.UtcNow
+            };
+            _claims.Add(record);
+
+            // mark item as pending
+            item.Status = "Pending";
             return Task.FromResult(true);
         }
     }

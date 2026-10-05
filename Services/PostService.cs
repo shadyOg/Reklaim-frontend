@@ -79,6 +79,15 @@ public class PostService
         return response.IsSuccessStatusCode;
     }
 
+    public async Task<bool> SubmitClaimAsync(int id, ClaimRequestDto claim)
+    {
+        if (claim is null) return false;
+        await AddAuthHeaderAsync();
+        // POST to the API endpoint for claims. Adjust endpoint if backend uses different route.
+        var response = await _http.PostAsJsonAsync($"api/itemposts/{id}/claims", claim);
+        return response.IsSuccessStatusCode;
+    }
+
     public async Task<bool> DeleteAsync(int id)
     {
         await AddAuthHeaderAsync();

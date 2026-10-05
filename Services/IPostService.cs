@@ -8,5 +8,6 @@ public interface IPostService
     Task<ItemPostDto?> GetByIdAsync(int id);
     Task<int?> CreateAsync(CreateItemRequest model, Stream? imageStream, string? imageFileName);
     Task<bool> UpdateStatusAsync(int id, string status);
+    Task<bool> SubmitClaimAsync(int id, Models.ClaimRequestDto claim);
     Task<bool> DeleteAsync(int id);
 }

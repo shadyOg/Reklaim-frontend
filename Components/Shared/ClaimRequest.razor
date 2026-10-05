@@ -1,0 +1,102 @@
+@using System.ComponentModel.DataAnnotations
+@inject Reklaim_frontend.Services.IPostService PostService
+@inject Reklaim_frontend.Services.AuthService AuthService
+
+<div class="claim-request">
+    <EditForm Model="model" OnValidSubmit="HandleValidSubmit">
+        <DataAnnotationsValidator />
+        <ValidationSummary />
+
+        <div class="form-group">
+            <label for="proof">Proof description</label>
+            <InputTextArea id="proof" class="form-control" @bind-Value="model.ProofDescription" />
+            <ValidationMessage For="() => model.ProofDescription" />
+        </div>
+
+        <div class="form-group mt-2">
+            <label for="contact">Contact (optional)</label>
+            <InputText id="contact" class="form-control" @bind-Value="model.Contact" />
+        </div>
+
+        <div class="mt-3">
+            <button type="submit" class="btn btn-primary" disabled="@isSubmitting">Submit claim</button>
+            <button type="button" class="btn btn-secondary ml-2" @onclick="Cancel" disabled="@isSubmitting">Cancel</button>
+        </div>
+
+        @if (!string.IsNullOrEmpty(message))
+        {
+            <div class="mt-2 alert @messageClass">@message</div>
+        }
+
+    </EditForm>
+</div>
+
+@code {
+    [Parameter, EditorRequired]
+    public int ItemId { get; set; }
+
+    [Parameter]
+    public EventCallback<bool> OnSubmitted { get; set; }
+
+    private ClaimFormModel model = new();
+    private bool isSubmitting;
+    private string? message;
+    private string messageClass = "";
+
+    private async Task HandleValidSubmit()
+    {
+        isSubmitting = true;
+        message = null;
+        try
+        {
+            var user = await AuthService.GetCurrentUserAsync();
+            if (user is null)
+            {
+                message = "You must be signed in to submit a claim.";
+                messageClass = "alert-warning";
+                return;
+            }
+
+            var payload = new Reklaim_frontend.Models.ClaimRequestDto
+            {
+                ClaimantUserId = user.Id,
+                ProofDescription = model.ProofDescription,
+                Contact = model.Contact
+            };
+
+            var ok = await PostService.SubmitClaimAsync(ItemId, payload);
+            if (ok)
+            {
+                message = "Claim submitted successfully.";
+                messageClass = "alert-success";
+                await OnSubmitted.InvokeAsync(true);
+            }
+            else
+            {
+                message = "Failed to submit claim. Please check your proof description and try again.";
+                messageClass = "alert-danger";
+                await OnSubmitted.InvokeAsync(false);
+            }
+        }
+        finally
+        {
+            isSubmitting = false;
+        }
+    }
+
+    private async Task Cancel()
+    {
+        // notify parent that submission was cancelled
+        await OnSubmitted.InvokeAsync(false);
+    }
+
+    private class ClaimFormModel
+    {
+        [Required(ErrorMessage = "Please provide a proof description.")]
+        [StringLength(500, MinimumLength = 10, ErrorMessage = "Proof description must be at least 10 characters.")]
+        public string? ProofDescription { get; set; }
+
+        [StringLength(200, ErrorMessage = "Contact info is too long.")]
+        public string? Contact { get; set; }
+    }
+}

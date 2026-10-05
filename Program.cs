@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage;
 using Reklaim_frontend.Components;
 
 namespace Reklaim_frontend;
@@ -11,6 +12,9 @@ public class Program
         // Add services to the container.
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
+
+        // Register ProtectedSessionStorage so AuthService can inject it
+        builder.Services.AddScoped<ProtectedSessionStorage>();
 
         builder.Services.AddScoped<Reklaim_frontend.Services.AuthService>();
 
