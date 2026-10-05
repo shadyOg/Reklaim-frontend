@@ -131,7 +131,10 @@ public class PostService : IPostService
             return imageUrl;
         }
 
-        return new Uri(_http.BaseAddress!, imageUrl).ToString();
+        var apiBaseUrl = _http.BaseAddress?.ToString().TrimEnd('/');
+        return string.IsNullOrWhiteSpace(apiBaseUrl)
+            ? imageUrl
+            : $"{apiBaseUrl}/{imageUrl.TrimStart('/')}";
     }
 
     private static string GetImageContentType(string fileName) =>
