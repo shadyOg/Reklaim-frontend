@@ -5,7 +5,7 @@
 .kit-section h3 {
     margin-bottom: 0.8rem;
     font-size: 1rem;
-    color: #102b47;
+    color: var(--color-text);
 }
 
 .kit-row {
